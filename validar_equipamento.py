@@ -23,6 +23,8 @@ LINK_UPPDATE_VERSION_CHASHIER= 'https://s3.sa-east-1.amazonaws.com/ferramentas.c
 is_server:None
 jarvis_dir:None
 access_dir:None
+ip:None
+fixed_ip:True
 
 variables_to_check_jarvis_env = [
     {'IS_SERVER': 'is_server'},
@@ -38,17 +40,6 @@ variables_to_check_jarvis_env = [
 
 
 results_list = []
-
-def exec_cache_existence(COMANDO_JARVIS_ENV):
-    result = subprocess.check_output(COMANDO_JARVIS_ENV, shell=True).decode('utf-8')
-    if "cat: /etc/cloudpark/config.yml" in result:
-        print("\n---------------------CAIXA---------------------\n")
-        print("\n-----------------------------------------------\n")
-        exec_validation_version_cashier(result)
-    else:
-         
-        print_info_jarvis_env(result)
-        
 
 def exec_cache_existence():
     print("\n-----------------------------------------------\n")
@@ -76,9 +67,9 @@ def results_info_jarvis_env(result):
             get_value_from_file(result, variable)
 
     except subprocess.CalledProcessError as e:
-        results_list.append(f"Erro ao executar o comando: {e}")
+        print(f"Erro ao executar o comando: {e}")
     except Exception as e:
-        results_list.append(f"Erro inesperado: {e}")
+        print(f"Erro inesperado: {e}")
 
 
 def get_value_from_file(result, variable):
@@ -86,9 +77,9 @@ def get_value_from_file(result, variable):
         match = re.search(fr'{key}=(\S+)', result, re.IGNORECASE)
         if match:
             globals()[value] = match.group(1) == 'TRUE'
-            results_list.append(f"{key}= {match.group(1)}")
+            print(f"{key}: {match.group(1)}")
         else:
-            results_list.append(f'{key} = N/A')
+            print(f'{key}: N/A')
             
 def exec_validation_version_cashier():
     try:
@@ -117,18 +108,34 @@ def update_version_cashier():
     except Exception as e:
         print(f"Erro inesperado: {e}")
 
-def print_info_ip():
-    result = subprocess.check_output(COMMAND_JARVIS_IP, shell=True).decode('utf-8')
-    if "O IP está fixo" in result:
-        print(f"O IP está fixo")
-    else:
-        print("O IP está DHCP")
+def get_ip_info():
+    global fixed_ip,ip
+    try:
+        result = subprocess.check_output(COMMAND_JARVIS_IP, shell=True).decode('utf-8')
+        ip_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', result)
+        if ip_match:
+            global_ip_address = ip_match.group(1)
+            ip = global_ip_address
+            print("\n----------------------IP-----------------------")
+            print("IP:"+ ip)
+            if "O IP está fixo" in result:
+                print("IP Fixo: TRUE")
+            else:
+                print("IP Fixo: FALSE")
+                fixed_ip = False
+            print("-----------------------------------------------")                 
+        else:
+            print("Não foi possível encontrar o endereço IP no resultado.")
+    
+    except subprocess.CalledProcessError as e:
+        print(f"Erro ao executar o comando: {e}")
+    except Exception as e:
+        print(f"Erro inesperado: {e}")
 
 
 def print_jarvis_machines():
     print("\n----------------JARVIS MACHINES-_--------------\n")
     result = subprocess.check_output(COMMAND_JARVIS_MACHINES, shell=True).decode('utf-8')
-    
     print(result)
 
 
@@ -155,11 +162,9 @@ def exec_validation_swap():
 def clean_swap():
     try:
         print("\n-----------------LIMPANDO SWAP-----------------\n")
-        
         result = subprocess.check_output(COMMAND_CLEAR_SWAP, shell=True).decode('utf-8')
         print(result)
         print("-------------------TERMINOU--------------------\n")
-        print("\n----------------------PI-----------------------\n")
     except subprocess.CalledProcessError as e:
         print(f"Erro ao executar o comando: {e}")
     except Exception as e:
@@ -192,7 +197,12 @@ def print_test_internet_connection():
          print("INTERNETC= CONECTADO")
     else:
         print("INTERNETC= N/A") 
-        
+
+def install_jarvis():
+    print("install jarvis")
+    
+    
+           
 """ def print_exists_sqlite3():
     result = subprocess.check_output(['sqlite3']).decode('utf-8')
     if "SQLite version" in result:
@@ -201,16 +211,17 @@ def print_test_internet_connection():
         print("SQLite= FALSE") """
 
 def main():
-    """ exec_cache_existence()
-    print_info_ip()
-    print_date()
-    print_has_share() """
+    get_ip_info()
+    install_jarvis()
+    """ exec_cache_existence() """
+    """ print_date()
+    print_has_share() 
     exec_validation_swap()
     print_test_internet_connection() 
     exec_jarvis_install()
     print_jarvis_machines()
     for result in results_list:
-        print(result)
+        print(result) """
     
 if __name__ == "__main__":
     main()
