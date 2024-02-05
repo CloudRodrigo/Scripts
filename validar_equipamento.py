@@ -1,3 +1,4 @@
+import os
 import subprocess
 import re
 
@@ -19,6 +20,33 @@ COMMAND_TEST_PING = 'ping -c 2 -w 2 google.com'
 
 
 LINK_UPPDATE_VERSION_CHASHIER= 'https://s3.sa-east-1.amazonaws.com/ferramentas.cloudpark.com.br/caixa/cloudpark-desktop_23.10.2_amd64.deb"'
+
+
+script_content_pi = """ 
+#!/bin/sh
+resultado=$(wget https://s3-sa-east-1.amazonaws.com/ferramentas.cloudpark.com.br/app.zip);
+if [ -e app.zip ]; then
+echo "Baixamos o jarvis"
+sudo mv app.zip /opt/jarvistmp
+cd /opt/jarvistmp && sudo unzip app.zip
+echo "Jarvis está pronto =)"
+else
+echo "Não consegui baixar o Jarvis =/"
+fi
+"""
+script_content_caixa = """
+#!/bin/sh
+resultado=$(wget https://s3-sa-east-1.amazonaws.com/ferramentas.cloudpark.com.br/jarvis_x86/app.zip);
+if [ -e app.zip ]; then
+echo "Baixamos o jarvis"
+sudo mv app.zip /opt/jarvistmp
+cd /opt/jarvistmp && sudo unzip app.zip
+echo "Jarvis está pronto =)"
+else
+echo "Não consegui baixar o Jarvis =/"
+fi
+"""
+
 
 is_server:None
 jarvis_dir:None
@@ -183,7 +211,7 @@ def print_log_jarvis():
     except Exception as e:
         print(f"Erro inesperado: {e}")
 
-def exec_jarvis_install():
+def exec_jarvis_status():
         result = subprocess.check_output(COMMAND_JARVIS_STATUS, shell=True).decode('utf-8')
         if"running" in result:
             print("JARVIS INSTALADO")
@@ -198,11 +226,36 @@ def print_test_internet_connection():
     else:
         print("INTERNETC= N/A") 
 
-def install_jarvis():
-    print("install jarvis")
+def jarvis_installed():
+    try:
+        result = subprocess.check_output(['sudo', 'service', 'cloudpark-jarvis', 'status']).decode('utf-8')
+        if "running" in result:
+            print("JARVIS INSTALADO")
+            print_log_jarvis()
+        else:
+            print("JARVIS N/A")
+        "installing_jarvis()"
+    except subprocess.CalledProcessError as e:
+        print(f"Erro ao executar o comando: {e}")
+    except Exception as e:
+        print(f"Erro inesperado: {e}")
+
+         
+def installing_jarvis():
+    try:
+        subprocess.check_output(['sudo', 'rm', '-r', '/opt/jarvistmp/']).decode('utf-8')
+    except subprocess.CalledProcessError:
+        pass
+
+    subprocess.check_output(['sudo', 'mkdir', '-p', '/opt/jarvistmp/']).decode('utf-8')
     
+    with open("get-jarvis.sh", "w") as arquivo:
+        arquivo.write(script_content_pi)
     
-           
+    os.chmod("get-jarvis.sh", 0o755)
+
+
+        
 """ def print_exists_sqlite3():
     result = subprocess.check_output(['sqlite3']).decode('utf-8')
     if "SQLite version" in result:
@@ -212,15 +265,14 @@ def install_jarvis():
 
 def main():
     get_ip_info()
-    install_jarvis()
-    """ exec_cache_existence() """
-    """ print_date()
+    jarvis_installed()
+    exec_cache_existence()
+    print_date()
     print_has_share() 
     exec_validation_swap()
     print_test_internet_connection() 
-    exec_jarvis_install()
     print_jarvis_machines()
-    for result in results_list:
+    """for result in results_list:
         print(result) """
     
 if __name__ == "__main__":
