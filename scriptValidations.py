@@ -74,6 +74,8 @@ def inicialize_config():
                 'NO_USE_SWAP': False,
                 'NO_EXIST_SHARE': False,
                 'INTERNET': False,
+                'DOWNLOAD':'',
+                'UPLOAD':'',
                 'RUNNING_JARVIS': False,
                 'RUNNING_RABBIT': False,
                 'RUNNING_MOSQUITTO': False,
@@ -356,7 +358,7 @@ def get_check_rabbit():
             if JSON_INFO['MACHINE']['RUNNING_RABBIT']:
                 print('     -> Instalando com sucesso                    ')
             else:
-                print('     -> Erro ao instalar mosquitto                ')
+                print('     -> Erro ao instalar rabbbit                ')
         if is_serve and not JSON_INFO['MACHINE']['RUNNING_RABBIT']:
             installing_rabbit() 
             restart_rabbit()
@@ -413,7 +415,7 @@ def restart_rabbit():
 def installing_rabbit():
     global JSON_INFO
     conteudo ="[{rabbit, [{loopback_users, []}]}]."
-    path_file = JSON_INFO['PATHS']['RABBIT_STATUS']
+    path_file = JSON_INFO['PATHS']['CONFIG_RABBIT']
     print(path_file)
     try:
         print_collor_blue('     -> Alterando arquivo Rabbit                  ')
@@ -465,7 +467,7 @@ def status_mosquitto():
 def installing_mosquitto():
     global JSON_INFO, INCOMPATIBILIRIES
     conteudo ="""listener 9001\nprotocol websockets\nlistener 1883\nprotocol mqtt\nallow_anonymous true"""
-    path_file = JSON_INFO['PATHS']['CONFIG_RABBIT']
+    path_file = JSON_INFO['PATHS']['CONFIG_MOSQUITTO']
     try:
         print_collor_blue('     -> Alterando arquivo Mosquitto               ')
         with open(path_file, 'w') as arquivo:  
@@ -500,6 +502,7 @@ def fixing_ip():
         head('                    FIXANDO IP                    ')  
         subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         
+     
 # INICIALIZAR MACHINES
 def process_machines():
     print_collor_orange('-> Obtendo informações referente a machines...    ')
@@ -514,7 +517,7 @@ def process_machines():
     get_sqlite3_check()
     get_check_rabbit()
     get_mosquitto_check()
-    
+
 # CONFIG FOR PRINT
 class ColorPrint(Enum):
     YELLOW = '\033[93m'
