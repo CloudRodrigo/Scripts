@@ -1,17 +1,11 @@
 import re
 import subprocess
-
-
-
-
 from enum import Enum
 
 JSON_INFO = None
 CONF_INFO = None
 INCOMPATIBILIRIES = None
 LOG_JARVIS= None
-
-SCRIPTY_RABBIT= '[{rabbit, [{loopback_users, []}]}].'
 
 def exec_cache_existente():
     try:
@@ -25,7 +19,6 @@ def exec_cache_existente():
                 load_config_jarvis_env()
     except:
         print_collor_red('-> Erro ao carregar json de informações           ')   
-
 
 def inicialize_config():
     print_collor_orange('-> Inicializando criação de json informações.     ')
@@ -54,7 +47,7 @@ def inicialize_config():
                 'CONFIG_PAYMENT': '/etc/cloudpark/payment.yml',
                 'CONFIG_HOSTNAME':'/etc/hostname',
                 'CONFIG_RABBIT':'/etc/rabbitmq/rabbitmq.config',
-                'CONFIG_MOQUITTO':'/etc/mosquitto/mosquitto.conf',
+                'CONFIG_MOSQUITTO':'/etc/mosquitto/mosquitto.conf',
             },
             'HAS_JARVISTMP': False,                    
             'JARVIS_INSTALLED': False,
@@ -83,7 +76,7 @@ def inicialize_config():
                 'INTERNET': False,
                 'RUNNING_JARVIS': False,
                 'RUNNING_RABBIT': False,
-                'RUNNING_MOQUITTO': False,
+                'RUNNING_MOSQUITTO': False,
                 'LOG_JARVIS_OK': False,
             }
         }
@@ -108,12 +101,10 @@ def inicialize_config():
                     'INSTALL_SQLITE3':'sudo apt install sqlite3',
                     'UPDATE':'sudo apt update',
                     'AUTOREMOVER':'sudo apt autoremover',
-                    
-                    'RESTART_RABBIT':'sudo service rabbitmq-server  restart',
+                    'RESTART_RABBIT':'sudo service rabbitmq-server restart',
                     'RABBIT_STATUS':'sudo service rabbitmq-server  status',
-                    
-                    'MOQUITTO_STATUS':'sudo service mosquitto  status',
-                    'REMOVE_MOQUITTO':'sudo apt-get remove mosquitto -y',
+                    'MOSQUITTO_STATUS':'sudo service mosquitto  status',
+                    'REMOVE_MOSQUITTO':'sudo apt-get remove mosquitto -y',
                 }
         }
         CONF_INFO = config_comand  
@@ -255,12 +246,12 @@ def exec_validation_swap():
    
 def clear_swap():
     global CONF_INFO, INCOMPATIBILIRIES
-    print_collor_blue('         -> Iniciando limpeza do SWAP             ')
+    print_collor_blue('     -> Iniciando limpeza do SWAP             ')
     try:
         command = CONF_INFO['COMMAND']['CLEAR_SWAP']
         subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('LIMPEZA SWAP')
-        print_collor_green('         -> Finalizando limpeza do SWAP             ')   
+        print_collor_green('     -> Finalizando limpeza do SWAP             ')   
     except:
         print_collor_red("-> Erro ao executar limpeza de swap               ")
 
@@ -341,7 +332,6 @@ def get_sqlite3_check():
                 INCOMPATIBILIRIES['UNCONFORMITIES'].add('INSTALANDO SQLITE')
                 install_sqlite3()
                 JSON_INFO['MACHINE']['EXIST_SQLITE3'] = True
-                
         elif not is_server:
             if find_sqlite3_stdout:
                 print_collor_blue('     -> Removendo SQLITE3                         ')
@@ -356,50 +346,160 @@ def get_check_rabbit():
     global JSON_INFO, CONF_INFO, INCOMPATIBILIRIES
     print_collor_orange('-> Iniciando verificação do Rebbit                ')
     is_serve = JSON_INFO['JARVIS_ENV']['IS_SERVER']
-
+    
     try:
-        command = CONF_INFO['COMMAND']['RABBIT_STATUS']
-        result = subprocess.check_output(command, shell=True, universal_newlines=True)
-        JSON_INFO['MACHINE']['RUNNING_RABBIT'] = 'running' in result   
+        status_rabbit()
         if is_serve and JSON_INFO['MACHINE']['RUNNING_RABBIT']:
-            
-
-            print_collor_green('-> Finalizando verificação do Rebbit              ')
+            installing_rabbit() 
+            restart_rabbit()
+            status_rabbit()
+            if JSON_INFO['MACHINE']['RUNNING_RABBIT']:
+                print('     -> Instalando com sucesso                    ')
+            else:
+                print('     -> Erro ao instalar mosquitto                ')
+        if is_serve and not JSON_INFO['MACHINE']['RUNNING_RABBIT']:
+            installing_rabbit() 
+            restart_rabbit()
+            status_rabbit()
+            if JSON_INFO['MACHINE']['RUNNING_RABBIT']:
+                print('     -> Instalando com sucesso                    ')
+                INCOMPATIBILIRIES['UNCONFORMITIES'].add('Rabbit instalado')
+            else:
+                print('     -> Erro ao instalar mosquitto                ')
+        elif is_serve and JSON_INFO['MACHINE']['RUNNING_RABBIT']:
+            remover_rabbit()
+        print_collor_green('-> Finalizando verificação do Rebbit              ')
     except:
         print_collor_red('-> Erro ao executar verificação do Rebbbit ')
 
-
+def status_rabbit():
+    global CONF_INFO
+    command = CONF_INFO['COMMAND']['RABBIT_STATUS']
+    try:
+        print_collor_blue('     -> Verificando status rabbit                 ')
+        result = subprocess.check_output(command, shell=True, universal_newlines=True)
+        JSON_INFO['MACHINE']['RUNNING_RABBIT'] = 'running' in result 
+    except subprocess.CalledProcessError:
+        print_collor_orange('     -> Rabbit nao encontrado                 ')
+        pass
+        
 def remover_rabbit():
-    print_collor_blue('       -> Removendo Rabbit                   ')
+    print_collor_blue('     -> Removendo Rabbit                   ')
     global CONF_INFO, INCOMPATIBILIRIES
     try:
-        command1 = 'sudo apt-get remove rabbitmq-server -y'
-        command2 = 'sudo apt-get remove --auto-remove rabbitmq-server -y'
-        command3 = 'sudo apt-get purge --auto-remove rabbitmq-server -y'
-        command4 = CONF_INFO['COMMAND']['UPDATE']
-        subprocess.run(command1, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        subprocess.run(command2, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        subprocess.run(command3, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        subprocess.run(command4, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        remover_rabbit_simple = 'sudo apt-get remove rabbitmq-server -y'
+        remover_rabbit_auto_remove = 'sudo apt-get remove --auto-remove rabbitmq-server -y'
+        purge_rabbit_auto_remove = 'sudo apt-get purge --auto-remove rabbitmq-server -y'
+        update_command = CONF_INFO['COMMAND']['UPDATE']
+        subprocess.run(remover_rabbit_simple, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(remover_rabbit_auto_remove, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(purge_rabbit_auto_remove, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(update_command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Rabbit removido')
-        print_collor_green('    -> Finalizano remocão rabbit                  ')
+        print_collor_green('     -> Finalizando remoção do Rabbit                  ')
     except:
-        print_collor_red('      -> Erro ao remover Rabbit')
+        print_collor_red('     -> Erro ao remover o Rabbit')
+
+def restart_rabbit():
+    global CONF_INFO
+    restart_command = CONF_INFO['COMMAND']['RESTART_RABBIT']
+    try:
+        print_collor_blue('     -> Reiniciando Rabbit                       ')
+        subprocess.run(restart_command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print_collor_green('     -> Rabbit reiniciado                        ')
+    except:
+        print_collor_red('      -> Erro ao reiniciar Rabbit                 ')
+
+def installing_rabbit():
+    global JSON_INFO
+    conteudo ="[{rabbit, [{loopback_users, []}]}]."
+    path_file = JSON_INFO['PATHS']['RABBIT_STATUS']
+    print(path_file)
+    try:
+        print_collor_blue('     -> Alterando arquivo Rabbit                  ')
+        with open(path_file, 'w') as arquivo:  
+            arquivo.write(conteudo)
+        print_collor_green('     -> Arquivo alterado Rabbit                   ')
+    except:
+        print_collor_red('     -> Erro ao alterar arquivo Rabbit: ')
+
+def get_mosquitto_check():
+    global JSON_INFO, CONF_INFO, INCOMPATIBILIRIES
+    print_collor_orange('-> Iniciando verificação do Mosquitto                ')
+    is_serve = JSON_INFO['JARVIS_ENV']['IS_SERVER']
+    try:
+        status_mosquitto()
+        if is_serve and JSON_INFO['MACHINE']['RUNNING_MOSQUITTO']:
+            installing_mosquitto()
+            status_mosquitto()
+            if JSON_INFO['MACHINE']['RUNNING_MOSQUITTO']:
+                print_collor_green('     -> Instalando com sucesso                    ')
+            else:
+                print_collor_red('     -> Erro ao instalar mosquitto                ')
+        if is_serve and not JSON_INFO['MACHINE']['RUNNING_MOSQUITTO']:
+            installing_mosquitto()
+            status_mosquitto()
+            if JSON_INFO['MACHINE']['RUNNING_MOSQUITTO']:
+                print_collor_green('     -> Instalando com sucesso                    ')
+                INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquito instalado')
+            else:
+                print_collor_red('     -> Erro ao instalar mosquitto                ')
+        elif not is_serve and JSON_INFO['MACHINE']['RUNNING_MOSQUITTO']:
+            remover_mosquitto()
+        print_collor_green('-> Finalizando verificação do Mosquitto           ')
+    except:
+        print_collor_red('-> Erro ao executar verificação do Mosquitto      ')
+
+def status_mosquitto():
+    global CONF_INFO
+    command = CONF_INFO['COMMAND']['MOSQUITTO_STATUS']
+    try:
+        print_collor_blue('     -> Verificando status mosquitto')
+        result = subprocess.check_output(command, shell=True, universal_newlines=True)
+        JSON_INFO['MACHINE']['RUNNING_MOSQUITTO'] = 'running' in result 
+        print_collor_blue('     -> Mosquitto nao encontrado')
+    except subprocess.CalledProcessError:
+        print_collor_orange('     -> Mosquitto nao encontrado                  ')
+        pass
+        
+def installing_mosquitto():
+    global JSON_INFO, INCOMPATIBILIRIES
+    conteudo ="""listener 9001\nprotocol websockets\nlistener 1883\nprotocol mqtt\nallow_anonymous true"""
+    path_file = JSON_INFO['PATHS']['CONFIG_RABBIT']
+    try:
+        print_collor_blue('     -> Alterando arquivo Mosquitto               ')
+        with open(path_file, 'w') as arquivo:  
+            arquivo.write(conteudo)
+        print_collor_green('     -> Arquivo alterado Mosquitto                ')
+    except:
+        print_collor_red('     -> Erro ao alterar arquivo Mosquitto         ')
+
+def remover_mosquitto():
+   try:
+    print_collor_blue('      -> Inicinado remoção do mosquitto                      ')
+    command = JSON_INFO['COMMAND']['REMOVE_MOSQUITTO']
+    subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquitto removido')
+    print_collor_green('      -> Removendo mosquitto                      ')
+   except:
+       print_collor_red('     -> Erro ao remover mosquito                  ')  
     
-""" 
-def get_mosquito_check():
-    print_collor_orange("-> Verrificando instalação mosquitto              ")
-    try
-
-
-    except """
-      
 def print_log_jarvis():
     print("LOG_JARVIS:")
     if LOG_JARVIS is not None:
         for linha in LOG_JARVIS:          
             print(linha.strip())    
 
+def fixing_ip():
+    global JSON_INFO
+    local_ip = JSON_INFO['MACHINE']['LOCAL_IP']
+    route = JSON_INFO['MACHINE']['ROUTE']
+    dns = JSON_INFO['MACHINE']['DNS']
+    command = f'sudo jarvis ip --static {local_ip} --mask 24 --gateway {route} --dns {dns}'
+    if not JSON_INFO['MACHINE']['IP_FIXO']:
+        head('                    FIXANDO IP                    ')  
+        subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
 # INICIALIZAR MACHINES
 def process_machines():
     print_collor_orange('-> Obtendo informações referente a machines...    ')
@@ -412,7 +512,9 @@ def process_machines():
     exec_jarvis_status()
     get_log_jarvis()
     get_sqlite3_check()
-
+    get_check_rabbit()
+    get_mosquitto_check()
+    
 # CONFIG FOR PRINT
 class ColorPrint(Enum):
     YELLOW = '\033[93m'
@@ -424,23 +526,23 @@ class ColorPrint(Enum):
 
 def print_dict_with_format(data, title):
     if data:
-        print(title.upper() + ":")
-        print("-" * 15)
+        print_collor_orange('\n' + title.upper())
+        print_collor_orange('-' * 50)
         for key, value in data.items():
-            if isinstance(value, bool):
-                value_str = "\033[92mTrue\033[0m" if value else "\033[91mFalse\033[0m"
+            if value:
+                print_collor_green(f'{key}:{value}')
             else:
-                value_str = "\033[91mN/A\033[0m" if value == "N/A" else value
-            print(f"{key} -> {value_str}")
-        print("-" * 8)
+                 print_collor_red(f'{key}:{value}')
     else:
-        print(f"No data found for {title.upper()}.")
+        print_collor_orange(f"No data found for {title.upper()}.")
 
 def print_result():    
     global JSON_INFO,CONF_INFO, INCOMPATIBILIRIES   
     print_dict_with_format(JSON_INFO.get('JARVIS_ENV'), 'JARVIS_ENV')
     print_dict_with_format(JSON_INFO.get('MACHINE'), 'MACHINE')  
-    print(INCOMPATIBILIRIES)
+    print_collor_blue('-'*50)
+    print_collor_blue(INCOMPATIBILIRIES)
+    print_collor_blue('-'*50)
 
 def print_collor_yellow(text):
      print(f'{ColorPrint.YELLOW.value}{text}{ColorPrint.WHITE.value}')    
@@ -457,7 +559,6 @@ def print_collor_red(text):
 def print_collor_blue(text):
     print(f'{ColorPrint.BLUE.value}{text}{ColorPrint.WHITE.value}')
     
-
 def head(text):
     print_collor_yellow("-" * 50)
     print_collor_yellow(f'{text}')
@@ -466,16 +567,17 @@ def head(text):
 # MAIN 
 
 def main():
-    head('     Validador de integridade de equipamento      ')
+    global JSON_INFO
+    head('     VALIDADOR DE INTEGRIDADE DE EQUIPAMENTO      ')
     inicialize_config()
     exec_cache_existente()
     process_machines()
-    print_collor_yellow("-" * 50)
-    print_result() 
-    print_collor_yellow("-" * 50)
-
-    # print_log_jarvis()
+    head('                    RESULTADOS                    ')
+    print_result()
+    if  not JSON_INFO['MACHINE']['LOG_JARVIS_OK']:
+        head('                    LOG JARVIS                    ')
+        print_log_jarvis()
+    fixing_ip()
     
-
 if __name__ == "__main__":
     main()
