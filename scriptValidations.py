@@ -210,7 +210,7 @@ def have_ip_info():
     global JSON_INFO, CONF_INFO
     try:        
         print_collor_orange('-> Iniciando obtenção de ip machines              ')        
-        print_collor_blue('     -> Obtendo dados do jarvis ip                ')
+        print_collor_blue('    -> Obtendo dados do jarvis ip                ')
         command = CONF_INFO['COMMAND']['JARVIS_IP'] 
         output = subprocess.check_output(command, shell=True, universal_newlines=True)
         ip_match = re.search(r'IP:\s*([\d.]+)', output)
@@ -599,7 +599,7 @@ def check_speedtest_cli_installed():
 def install_speedtest_cli():
     print_collor_orange('-> Instalando speedtest-cli...')
     try:
-        subprocess.run(["pip", "install", "speedtest-cli"], check=True)
+        subprocess.run(["sudo","pip", "install", "speedtest-cli"], check=True)
         print_collor_green('    -> speedtest-cli instalado com sucesso!')
     except subprocess.CalledProcessError as e:
         print_collor_red('Erro ao instalar speedtest-cli')
@@ -716,4 +716,3 @@ def main():
 if __name__ == "__main__":
     
     main()
-    
