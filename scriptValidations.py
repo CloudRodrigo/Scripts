@@ -130,7 +130,6 @@ def exec_cache_existente():
             has_swap()
     except Exception as e:
         print_collor_red('-> Erro ao carregar json de informações: ' + str(e))
- 
 
 def is_cache():
     global JSON_INFO
@@ -166,7 +165,6 @@ def exec_validation_version_cashier():
     except Exception as e:
         print_collor_red(f'Unexpected error: {e}')
 
-     
 """ def update_version_cashier():
     global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
     version_cashier= JSON_INFO['OTHERS']['VERSION_CASHIER']
@@ -198,8 +196,7 @@ def load_config_jarvis_env():
             JSON_INFO['JARVIS_ENV']['HARDWARE_DIR'] = 'HAS_ALPR=/opt/cloudpark' in conteudo
             JSON_INFO['JARVIS_ENV']['PAYMENT_TOTEM_DIR'] = 'PAYMENT_TOTEM_DIR=/opt/cloudpark/payment_totem/' in conteudo
             JSON_INFO['JARVIS_ENV']['USE_SHARE'] = 'share' in conteudo
-            
-            
+                        
         print_collor_green('-> Finalizando carregamento de json informações...')        
     except:
         print_collor_red('-> Erro ao carregar json de informações           ')        
@@ -280,7 +277,7 @@ def have_if_has_share():
     try:
         command = CONF_INFO['COMMAND']['LS']
         output = subprocess.check_output(command, shell=True, universal_newlines=True)
-        JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = 'share' in  output  # Verifica se 'share' está presente no output
+        JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = 'share' in  output
         if JSON_INFO['MACHINE']['NO_EXIST_SHARE']:
             print_collor_red('-> Pasta share foi encontrada')
             if not JSON_INFO['JARVIS_ENV']['USE_SHARE']:
@@ -725,3 +722,4 @@ def main():
 if __name__ == "__main__":
     
     main()
+    
