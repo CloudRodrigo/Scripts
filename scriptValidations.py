@@ -617,6 +617,16 @@ def test_internet_speed():
         JSON_INFO['MACHINE']['UPLOAD'] = f'{upload_speed:.2f}'+'Mbps'
     except Exception as e:
         print_collor_red('Erro ao testar velocidade da internet:', e)
+        
+def print_jarvis_machines():
+    global JSON_INFO
+    command = JSON_INFO['COMMAND']['JARVIS_MACHINES']
+    try:
+        print_collor_blue("\n------------------JARVIS MACHINES-----------------\n")
+        result = subprocess.check_output(command, shell=True).decode('utf-8')
+        print_collor_green('Jarvis Machines finalizado')
+    except:
+        print_collor_red('Erro ao executar jarvis machines')
              
 # INICIALIZAR MACHINES
 def process_machines():
@@ -696,10 +706,13 @@ def main():
     if not JSON_INFO['MACHINE']['LOG_JARVIS_OK']:
         head('                    LOG JARVIS                    ')
         print_log_jarvis()
+        
+    head('                 JARVIS MACHINES                  ')
+    print_jarvis_machines()
+    
     if not JSON_INFO['MACHINE']['IP_FIXO']:
         fixing_ip()
     
 if __name__ == "__main__":
     
     main()
-    
