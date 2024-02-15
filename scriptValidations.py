@@ -122,7 +122,8 @@ def exec_cache_existente():
         path_file = JSON_INFO['PATHS']['CONFIG_JARVISENV']
         with open(path_file, 'r') as arquivo:  
             if  'cat: /etc/cloudpark/config.yml"' in arquivo:
-                  is_cache() 
+                  is_cache()
+                  load_config_jarvis_env()
             else:
                 print_collor_blue('     -> Equiapamento tipo PI                     ')   
                 load_config_jarvis_env()
