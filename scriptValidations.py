@@ -7,19 +7,6 @@ CONF_INFO = None
 INCOMPATIBILIRIES = None
 LOG_JARVIS= None
 
-def exec_cache_existente():
-    try:
-        print_collor_orange('-> Verificando tipo de equipamento                ')
-        path_file = JSON_INFO['PATHS']['CONFIG_JARVISENV']
-        with open(path_file, 'r') as arquivo:  
-            if  'cat: /etc/cloudpark/config.yml"' in arquivo:
-                print_collor_blue('     -> Equiapamento tipo CAIXA                  ')   
-            else:
-                print_collor_blue('     -> Equiapamento tipo PI                     ')   
-                load_config_jarvis_env()
-    except:
-        print_collor_red('-> Erro ao carregar json de informações           ')   
-
 def inicialize_config():
     print_collor_orange('-> Inicializando criação de json informações.     ')
     global JSON_INFO
@@ -46,8 +33,9 @@ def inicialize_config():
                 'CONFIG_HARDWARE_OLD': '/etc/cloudpark/config.py',
                 'CONFIG_PAYMENT': '/etc/cloudpark/payment.yml',
                 'CONFIG_HOSTNAME':'/etc/hostname',
-                'create_rabbitmq_config':'/etc/rabbitmq/rabbitmq.config',
+                'CREATE_RABBITMQ_CONFIG':'/etc/rabbitmq/rabbitmq.config',
                 'CONFIG_MOSQUITTO':'/etc/mosquitto/mosquitto.conf',
+                'AUTOSTART_CLOUDPARK':'~/.config/autostart/cloudpark.destop'
             },
             'HAS_JARVISTMP': False,                    
             'JARVIS_INSTALLED': False,
@@ -56,12 +44,11 @@ def inicialize_config():
                 'HAS_HARDWARE': False,
                 'HAS_PAYMENT': False,
                 'HAS_ALPR': False,
+                'HAS_CASHIER': False,
                 "HAS_LCD": False,
                 'HAS_ALPR': False,
-                'USE_SHARE': False
-            },
-            'CONFIG':{
-                'STAMP': False,
+                'USE_SHARE': False,
+                'HAS_STAMP': False,
             },
             'MACHINE': {
                 'HOSTNAME': '',
@@ -73,6 +60,7 @@ def inicialize_config():
                 'EXIST_SQLITE3': False,
                 'NO_USE_SWAP': False,
                 'NO_EXIST_SHARE': False,
+                'CURRENT_VERSION_CACHIER': False,
                 'INTERNET': False,
                 'DOWNLOAD':'',
                 'UPLOAD':'',
@@ -80,6 +68,12 @@ def inicialize_config():
                 'RUNNING_RABBIT': False,
                 'RUNNING_MOSQUITTO': False,
                 'LOG_JARVIS_OK': False,
+            },
+            'OTHERS':{
+                'VERSION_CASHIER':'23.10.2',
+                'LINK_UPPDATE_VERSION_CHASHIER':'https://s3.sa-east-1.amazonaws.com/ferramentas.cloudpark.com.br/caixa/cloudpark-desktop_23.10.2_amd64.deb"'
+
+
             }
         }
         JSON_INFO = config_path  
@@ -109,6 +103,7 @@ def inicialize_config():
                     'REMOVE_MOSQUITTO':'sudo apt-get remove mosquitto -y',
                     'INSTALLING_RABBIT':'sudo apt-get install rabbitmq-server',
                     'INSTALLING_MOSQUITTO':'sudo apt-get install mosquitto -y',
+                    
                 }
         }
         CONF_INFO = config_comand  
@@ -120,7 +115,65 @@ def inicialize_config():
         print_collor_green('-> Finalizando criação de json informações.       ')
     except:
         print_collor_red('-> Erro ao criar json de informações              ')
-       
+
+def exec_cache_existente():
+    try:
+        print_collor_orange('-> Verificando tipo de equipamento                ')
+        path_file = JSON_INFO['PATHS']['CONFIG_JARVISENV']
+        with open(path_file, 'r') as arquivo:  
+            if  'cat: /etc/cloudpark/config.yml"' in arquivo:
+                  is_cache() 
+            else:
+                print_collor_blue('     -> Equiapamento tipo PI                     ')   
+                load_config_jarvis_env()
+    except:
+        print_collor_red('-> Erro ao carregar json de informações           ')   
+
+def is_cache():
+    global JSON_INFO
+    path_file = JSON_INFO['PATHS']['AUTOSTART_CLOUDPARK']
+    try:
+        print_collor_orange('-> Verificando AutoStart')
+        with open(path_file, 'r') as arquivo:
+            if 'CloudPark' in arquivo:
+                print_collor_blue('     -> Equiapamento tipo CAIXA                   ')
+                JSON_INFO['JARVIS_ENV']['HAS_CASHIER'] = True
+                exec_validation_version_cashier()
+            else:
+                print_collor_blue('     -> Equiapamento NÃO é um CAIXA                   ')
+        print_collor_green('-> Finalizando verificação AutoStart')
+    except:
+        print_collor_red('-> Erro ao tentar verifica AutoStart')
+
+def exec_validation_version_cashier():
+    global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
+    command_version_cashier = CONF_INFO['COMMAND']['VERSION_CASHIER']
+    version_cashier = JSON_INFO['OTHERS']['VERSION_CASHIER']
+    try:
+        result = subprocess.check_output(command_version_cashier, shell=True, universal_newlines=True)
+        JSON_INFO['MACHINE']['CURRENT_VERSION_CASHIER'] = f'Version: {version_cashier}' in result
+        if not JSON_INFO['MACHINE']['CURRENT_VERSION_CASHIER']:
+            INCOMPATIBILIRIES['UNCONFORMITIES'].add(f'Versão do caixa esta desatualizada')
+    except subprocess.CalledProcessError as e:
+        print(f'Error executing the command: {e}')
+    except Exception as e:
+        print(f'Unexpected error: {e}')
+     
+""" def update_version_cashier():
+    global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
+    version_cashier= JSON_INFO['OTHERS']['VERSION_CASHIER']
+    link_uppdate_version_chashier= JSON_INFO['OTHERS']['LINK_UPPDATE_VERSION_CHASHIER']
+    try:
+        subprocess.check_output(['wget', link_uppdate_version_chashier]).decode('utf-8')
+        subprocess.check_output(['sudo', 'dpkg', '--purge', 'cloudpark-desktop']).decode('utf-8')
+        subprocess.check_output(['sudo', 'apt-get', 'update'])
+        subprocess.check_output(['sudo', 'dpkg', '-i','cloudpark-desktop_'+version_cashier+'_amd64.deb'])
+        subprocess.check_output(['sudo', 'nano', '~/.config/autostart/cloudpark.desktop'])
+        print("\n---------------CAIXA ATUALIZADO----------------\n'
+        
+    except Exception as e:
+        print(f"Erro inesperado: {e}'     """    
+
 def load_config_jarvis_env():
     print_collor_orange('-> Iniciando carregamento de json informações...  ')
     try:
@@ -136,15 +189,28 @@ def load_config_jarvis_env():
             JSON_INFO['JARVIS_ENV']['HARDWARE_DIR'] = 'HAS_ALPR=/opt/cloudpark' in conteudo
             JSON_INFO['JARVIS_ENV']['PAYMENT_TOTEM_DIR'] = 'PAYMENT_TOTEM_DIR=/opt/cloudpark/payment_totem/' in conteudo
             JSON_INFO['JARVIS_ENV']['USE_SHARE'] = 'share' in conteudo
+            
+            has_swap()
         print_collor_green('-> Finalizando carregamento de json informações...')        
     except:
         print_collor_red('-> Erro ao carregar json de informações           ')        
  
+def has_swap():
+    global JSON_INFO
+    path_file = JSON_INFO['PATHS']['CONFIG_HARDWARE']   
+    try:
+        print_collor_blue('     -> Verificando se é STAMP')
+        with open(path_file, 'r') as arquivo:
+            conteudo = arquivo.read()
+            JSON_INFO['JARVIS_ENV']['HAS_STAMP'] = 'STAMP: true' in conteudo
+        print_collor_green('    -> Finalizando veriificação STAMP')
+    except:
+        print_collor_red('     -> Erro ao executar verificação STAMP')
 def have_ip_info():
     global JSON_INFO, CONF_INFO
     try:        
         print_collor_orange('-> Iniciando obtenção de ip machines              ')        
-        print_collor_blue('    -> Obtendo dados do jarvis ip                ')
+        print_collor_blue('     -> Obtendo dados do jarvis ip                ')
         command = CONF_INFO['COMMAND']['JARVIS_IP'] 
         output = subprocess.check_output(command, shell=True, universal_newlines=True)
         ip_match = re.search(r'IP:\s*([\d.]+)', output)
@@ -212,12 +278,12 @@ def have_if_has_share():
                 confirm = input('Você tem certeza que deseja excluir a pasta share? (Digite "sim" para confirmar): ')
                 if confirm.lower() == 'sim':
                     delete_share_folder()
-                    print_collor_orange("    -> Finalizando remoção da pasta share         ")
+                    print_collor_orange('    -> Finalizando remoção da pasta share         ')
                     JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = True
                 else:
                     print_collor_blue('-> Exclusão da pasta share cancelada.')
             else:
-                print_collor_red('      -> Pasta share está sendo usada             ')
+                print_collor_red('     -> Pasta share está sendo usada             ')
         JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = True
         print_collor_green('-> Finalizando verificação se existe pasta share  ')
     except:
@@ -231,7 +297,7 @@ def delete_share_folder():
         subprocess.check_output(command, shell=True, universal_newlines=True)
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('PASTA SHARE REMOVIDA')
     except:
-        print_collor_red("-> Erro ao deletar pasta share")
+        print_collor_red('-> Erro ao deletar pasta share')
         
 def exec_validation_swap():
     global JSON_INFO, CONF_INFO
@@ -257,55 +323,55 @@ def clear_swap():
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('LIMPEZA SWAP')
         print_collor_green('     -> Finalizando limpeza do SWAP             ')   
     except:
-        print_collor_red("-> Erro ao executar limpeza de swap               ")
+        print_collor_red('-> Erro ao executar limpeza de swap               ')
 
 def have_test_internet_connection():
     global CONF_INFO, INCOMPATIBILIRIES
-    print_collor_orange("-> Verificação de internet...                     ")
+    print_collor_orange('-> Verificação de internet...                     ')
     try:
         command = CONF_INFO['COMMAND']['TESTE_PING']
         output = subprocess.check_output(command, shell=True, universal_newlines=True)
         JSON_INFO['MACHINE']['INTERNET'] ='PING google.com' in output;
         if not JSON_INFO['MACHINE']['INTERNET']:
             INCOMPATIBILIRIES['UNCONFORMITIES'].add('SEM CONEXAO A INTERNET')
-            print_collor_red("      -> Sem conexão com a internet               ")
-        print_collor_green("-> Finalizando verificação internet               ")
+            print_collor_red('      -> Sem conexão com a internet               ')
+        print_collor_green('-> Finalizando verificação internet               ')
     except:
         print_collor_red('-> Erro ao tentar verificar conexão com a internet')    
 
 def exec_jarvis_status():
     global CONF_INFO, INCOMPATIBILIRIES
-    print_collor_orange("-> Verificando funcionamento jarvis               ")
+    print_collor_orange('-> Verificando funcionamento jarvis               ')
     try:
         command = CONF_INFO['COMMAND']['JARVIS_STATUS']
         result = subprocess.check_output(command, shell=True, universal_newlines=True)
         JSON_INFO['MACHINE']['RUNNING_JARVIS'] = 'running' in result
         
         if not JSON_INFO['MACHINE']['RUNNING_JARVIS']:
-            print_collor_red('      -> Jarvis nao esta funciondo')
+            print_collor_red('     -> Jarvis nao esta funciondo')
             INCOMPATIBILIRIES['UNCONFORMITIES'].add('JARVIS DEAD')        
     except:
         print_collor_red('-> Erro ao verificar funcionamento jarviz         ')
 
 def have_log_jarvis():
     global JSON_INFO, LOG_JARVIS
-    print_collor_orange("-> Verificação do log do jarvis...                ")
+    print_collor_orange('-> Verificação do log do jarvis...                ')
     try:
         path_file = JSON_INFO['PATHS']['LOG_JARVIS']   
         with open(path_file, 'r') as arquivo:
             linhas = arquivo.readlines()
             ultimas_20_linhas = linhas[-20:]
             for linha in ultimas_20_linhas:
-                if ("ERRO" or "CRITICAL" )in linha:
+                if ('ERRO' or 'CRITICAL')in linha:
                     LOG_JARVIS = ultimas_20_linhas
                     INCOMPATIBILIRIES['UNCONFORMITIES'].add('LOG JARVIS COM ERRO')
-                    print_collor_red("-> Erro encontrado no log do jarvis")
+                    print_collor_red('-> Erro encontrado no log do jarvis')
                     break
         if LOG_JARVIS is  None:  
             JSON_INFO['MACHINE']['LOG_JARVIS_OK'] = True
-            print_collor_green("-> Log verificado com sucesso                       ")
+            print_collor_green('-> Log verificado com sucesso                       ')
     except:
-        print_collor_red("-> Erro ao verificar log do jarvis                ")
+        print_collor_red('-> Erro ao verificar log do jarvis                ')
 
 def install_sqlite3():
     global CONF_INFO
@@ -321,7 +387,7 @@ def remove_sqlite3():
 
 def have_sqlite3_check():
     global JSON_INFO, CONF_INFO, INCOMPATIBILIRIES
-    print_collor_orange("-> Verificando instalação SQLITE3                 ")
+    print_collor_orange('-> Verificando instalação SQLITE3                 ')
     is_server = JSON_INFO['JARVIS_ENV']['IS_SERVER']
     command = CONF_INFO['COMMAND']['FIND_SQLITE3']
     try:
@@ -408,7 +474,7 @@ def restart_rabbit():
         subprocess.run(restart_command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print_collor_green('     -> Rabbit reiniciado                        ')
     except:
-        print_collor_red('      -> Erro ao reiniciar Rabbit                 ')
+        print_collor_red('     -> Erro ao reiniciar Rabbit                 ')
 
 def installing_rabbit():
     global CONF_INFO, INCOMPATIBILIRIES
@@ -436,7 +502,7 @@ def create_rabbitmq_config():
         print_collor_red('     -> Erro ao alterar arquivo Rabbit:', e)
 
 def print_log_jarvis():
-    print("LOG_JARVIS:")
+    print('LOG_JARVIS:')
     if LOG_JARVIS is not None:
         for linha in LOG_JARVIS:          
             print(linha.strip())    
@@ -504,7 +570,7 @@ def remover_mosquitto():
         command = JSON_INFO['COMMAND']['REMOVE_MOSQUITTO']
         subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquitto removido')
-        print_collor_green('      -> Removendo mosquitto                      ')
+        print_collor_green('     -> Removendo mosquitto                      ')
     except:
         print_collor_red('     -> Erro ao remover mosquito                  ')
              
@@ -522,26 +588,26 @@ def installing_mosquitto():
         print_collor_red('     -> Erro ao instalar mosquitto                  ')
    
 def check_speedtest_cli_installed():
-    print_collor_orange("-> Verificando se speedtest-cli está instalado...")
+    print_collor_orange('-> Verificando se speedtest-cli está instalado...')
     try:
         subprocess.run(["pip", "show", "speedtest-cli"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print_collor_green("    -> speedtest-cli já está instalado.")
+        print_collor_green('    -> speedtest-cli já está instalado.')
     except subprocess.CalledProcessError:
-        print_collor_orange("    -> speedtest-cli não está instalado.")
+        print_collor_orange('    -> speedtest-cli não está instalado.')
         install_speedtest_cli()
 
 def install_speedtest_cli():
-    print_collor_orange("-> Instalando speedtest-cli...")
+    print_collor_orange('-> Instalando speedtest-cli...')
     try:
         subprocess.run(["pip", "install", "speedtest-cli"], check=True)
-        print_collor_green("    -> speedtest-cli instalado com sucesso!")
+        print_collor_green('    -> speedtest-cli instalado com sucesso!')
     except subprocess.CalledProcessError as e:
-        print_collor_red("Erro ao instalar speedtest-cli:", e)
+        print_collor_red('Erro ao instalar speedtest-cli')
 
 def test_internet_speed():
     import speedtest
     global JSON_INFO
-    print_collor_orange("-> Testando velocidade da internet...")
+    print_collor_orange('-> Testando velocidade da internet...')
     try:
         st = speedtest.Speedtest()
         st.get_best_server()
@@ -550,7 +616,7 @@ def test_internet_speed():
         JSON_INFO['MACHINE']['DOWNLOAD'] = f'{download_speed:.2f}'+'Mbps'
         JSON_INFO['MACHINE']['UPLOAD'] = f'{upload_speed:.2f}'+'Mbps'
     except Exception as e:
-        print_collor_red("Erro ao testar velocidade da internet:", e)
+        print_collor_red('Erro ao testar velocidade da internet:', e)
              
 # INICIALIZAR MACHINES
 def process_machines():
@@ -588,7 +654,7 @@ def print_dict_with_format(data, title):
             else:
                  print_collor_red(f'{key}:{value}')
     else:
-        print_collor_orange(f"No data found for {title.upper()}.")
+        print_collor_orange(f'No data found for {title.upper()}.')
 
 def print_result():    
     global JSON_INFO,CONF_INFO, INCOMPATIBILIRIES   
@@ -636,3 +702,4 @@ def main():
 if __name__ == "__main__":
     
     main()
+    
