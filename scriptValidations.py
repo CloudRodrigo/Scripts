@@ -1,3 +1,4 @@
+import os
 import re
 import subprocess
 from enum import Enum
@@ -35,7 +36,7 @@ def inicialize_config():
                 'CONFIG_HOSTNAME':'/etc/hostname',
                 'CREATE_RABBITMQ_CONFIG':'/etc/rabbitmq/rabbitmq.config',
                 'CONFIG_MOSQUITTO':'/etc/mosquitto/mosquitto.conf',
-                'AUTOSTART_CLOUDPARK':'~/.config/autostart/cloudpark.destop'
+                'AUTOSTART_CLOUDPARK':'/home/pi/.config/autostart/cloudpark.desktop'
             },
             'HAS_JARVISTMP': False,                    
             'JARVIS_INSTALLED': False,
@@ -60,7 +61,8 @@ def inicialize_config():
                 'EXIST_SQLITE3': False,
                 'NO_USE_SWAP': False,
                 'NO_EXIST_SHARE': False,
-                'CURRENT_VERSION_CACHIER': False,
+                'CURRENT_VERSION_CASHIER': False,
+                'VERSION_CASHIER':'',
                 'INTERNET': False,
                 'DOWNLOAD':'',
                 'UPLOAD':'',
@@ -103,7 +105,6 @@ def inicialize_config():
                     'REMOVE_MOSQUITTO':'sudo apt-get remove mosquitto -y',
                     'INSTALLING_RABBIT':'sudo apt-get install rabbitmq-server',
                     'INSTALLING_MOSQUITTO':'sudo apt-get install mosquitto -y',
-                    
                 }
         }
         CONF_INFO = config_comand  
@@ -117,35 +118,36 @@ def inicialize_config():
         print_collor_red('-> Erro ao criar json de informações              ')
 
 def exec_cache_existente():
+    path = JSON_INFO['PATHS']['CONFIG_HARDWARE']
     try:
         print_collor_orange('-> Verificando tipo de equipamento                ')
-        path_file = JSON_INFO['PATHS']['CONFIG_JARVISENV']
-        with open(path_file, 'r') as arquivo:  
-            if  'cat: /etc/cloudpark/config.yml"' in arquivo:
-                print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-                is_cache()
-                load_config_jarvis_env()
-            else:
-                print_collor_blue('     -> Equiapamento tipo PI                     ')   
-                load_config_jarvis_env()
-    except:
-        print_collor_red('-> Erro ao carregar json de informações           ')   
+        if not os.path.exists(path):
+            is_cache()
+            load_config_jarvis_env()
+        else:
+            print_collor_blue('     -> Equipamento tipo PI                     ')
+            load_config_jarvis_env()
+            has_swap()
+    except Exception as e:
+        print_collor_red('-> Erro ao carregar json de informações: ' + str(e))
+ 
 
 def is_cache():
     global JSON_INFO
     path_file = JSON_INFO['PATHS']['AUTOSTART_CLOUDPARK']
     try:
         print_collor_orange('-> Verificando AutoStart')
-        with open(path_file, 'r') as arquivo:
-            if 'CloudPark' in arquivo:
-                print_collor_blue('     -> Equiapamento tipo CAIXA                   ')
+        with open(path_file, 'r') as arquivo:  
+            conteudo = arquivo.read()  
+            if 'CloudPark' in conteudo:
+                print_collor_blue('     -> Equipamento tipo CAIXA                   ')
                 JSON_INFO['JARVIS_ENV']['HAS_CASHIER'] = True
                 exec_validation_version_cashier()
             else:
-                print_collor_blue('     -> Equiapamento NÃO é um CAIXA                   ')
+                print_collor_blue('     -> Equipamento NÃO é um CAIXA                   ')
         print_collor_green('-> Finalizando verificação AutoStart')
-    except:
-        print_collor_red('-> Erro ao tentar verifica AutoStart')
+    except Exception as e:
+        print_collor_red('-> Erro ao tentar verificar AutoStart: ' + str(e))
 
 def exec_validation_version_cashier():
     global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
@@ -153,28 +155,33 @@ def exec_validation_version_cashier():
     version_cashier = JSON_INFO['OTHERS']['VERSION_CASHIER']
     try:
         result = subprocess.check_output(command_version_cashier, shell=True, universal_newlines=True)
+        match = re.search(r'Version: (\d+\.\d+\.\d+)', result)
+        JSON_INFO['MACHINE']['VERSION_CASHIER'] = match.group(1)
         JSON_INFO['MACHINE']['CURRENT_VERSION_CASHIER'] = f'Version: {version_cashier}' in result
         if not JSON_INFO['MACHINE']['CURRENT_VERSION_CASHIER']:
-            INCOMPATIBILIRIES['UNCONFORMITIES'].add(f'Versão do caixa esta desatualizada')
+            INCOMPATIBILIRIES['UNCONFORMITIES'].add(f'Caixa atualizado')
+            # update_version_cashier()
     except subprocess.CalledProcessError as e:
-        print(f'Error executing the command: {e}')
+        print_collor_red(f'Error executing the command: {e}')
     except Exception as e:
-        print(f'Unexpected error: {e}')
+        print_collor_red(f'Unexpected error: {e}')
+
      
 """ def update_version_cashier():
     global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
     version_cashier= JSON_INFO['OTHERS']['VERSION_CASHIER']
     link_uppdate_version_chashier= JSON_INFO['OTHERS']['LINK_UPPDATE_VERSION_CHASHIER']
     try:
+        print_collor_orange('     ->Iniciando Atualização caixa')
         subprocess.check_output(['wget', link_uppdate_version_chashier]).decode('utf-8')
         subprocess.check_output(['sudo', 'dpkg', '--purge', 'cloudpark-desktop']).decode('utf-8')
         subprocess.check_output(['sudo', 'apt-get', 'update'])
         subprocess.check_output(['sudo', 'dpkg', '-i','cloudpark-desktop_'+version_cashier+'_amd64.deb'])
-        subprocess.check_output(['sudo', 'nano', '~/.config/autostart/cloudpark.desktop'])
-        print("\n---------------CAIXA ATUALIZADO----------------\n'
+        # subprocess.check_output(['sudo', 'nano', '/home/pi/.config/autostart/cloudpark.desktop'])
+        print_collor_green('     -> Caixa atualizado com sucesso')
         
     except Exception as e:
-        print(f"Erro inesperado: {e}'     """    
+        print_collor_red('      -> Erro ao tentear atualizar o caixa ')   """
 
 def load_config_jarvis_env():
     print_collor_orange('-> Iniciando carregamento de json informações...  ')
@@ -192,7 +199,7 @@ def load_config_jarvis_env():
             JSON_INFO['JARVIS_ENV']['PAYMENT_TOTEM_DIR'] = 'PAYMENT_TOTEM_DIR=/opt/cloudpark/payment_totem/' in conteudo
             JSON_INFO['JARVIS_ENV']['USE_SHARE'] = 'share' in conteudo
             
-            has_swap()
+            
         print_collor_green('-> Finalizando carregamento de json informações...')        
     except:
         print_collor_red('-> Erro ao carregar json de informações           ')        
@@ -593,7 +600,7 @@ def check_speedtest_cli_installed():
     print_collor_orange('-> Verificando se speedtest-cli está instalado...')
     try:
         subprocess.run(["pip", "show", "speedtest-cli"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print_collor_green('    -> speedtest-cli já está instalado.')
+        print_collor_green('     -> speedtest-cli já está instalado.')
     except subprocess.CalledProcessError:
         print_collor_orange('    -> speedtest-cli não está instalado.')
         install_speedtest_cli()
@@ -678,10 +685,10 @@ def print_result():
     print_collor_blue('-'*50)
 
 def print_collor_yellow(text):
-     print(f'{ColorPrint.YELLOW.value}{text}{ColorPrint.WHITE.value}')    
+    print(f'{ColorPrint.YELLOW.value}{text}{ColorPrint.WHITE.value}')    
 
 def print_collor_green(text):
-     print(f'{ColorPrint.GREEN.value}{text}{ColorPrint.WHITE.value}') 
+    print(f'{ColorPrint.GREEN.value}{text}{ColorPrint.WHITE.value}') 
 
 def print_collor_orange(text):
     print(f'{ColorPrint.ORANGE.value}{text}{ColorPrint.WHITE.value}')    
@@ -718,4 +725,3 @@ def main():
 if __name__ == "__main__":
     
     main()
-    
