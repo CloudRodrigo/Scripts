@@ -1,7 +1,6 @@
 import re
 import subprocess
 from enum import Enum
-import speedtest
 
 JSON_INFO = None
 CONF_INFO = None
@@ -379,6 +378,7 @@ def status_rabbit():
             JSON_INFO['MACHINE']['RUNNING_RABBIT'] = True
             print_collor_green('     -> Rabbit encontrado                 ')
         else:
+            JSON_INFO['MACHINE']['RUNNING_RABBIT'] = False
             print_collor_red('     -> Rabbit nao encontrado                 ')
     except subprocess.CalledProcessError as e:
         print_collor_red('     -> Erro ao verificar o status do RabbitMQ.  ')
@@ -481,6 +481,7 @@ def status_mosquitto():
             print_collor_green('     -> Mosquitto encontrado                       ')
             JSON_INFO['MACHINE']['RUNNING_MOSQUITTO'] = True
         else:
+            JSON_INFO['MACHINE']['RUNNING_MOSQUITTO'] = False
             print_collor_red('     -> Mosquitto nao encontrado')
     except subprocess.CalledProcessError:
         print_collor_red('     -> Mosquitto nao encontrado                  ')
@@ -498,14 +499,14 @@ def config_mosquitto():
         print_collor_red('     -> Erro ao alterar arquivo Mosquitto         ')
 
 def remover_mosquitto():
-   try:
-    print_collor_blue('     -> Inicinado remoção do mosquitto                      ')
-    command = JSON_INFO['COMMAND']['REMOVE_MOSQUITTO']
-    subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquitto removido')
-    print_collor_green('      -> Removendo mosquitto                      ')
-   except:
-       print_collor_red('     -> Erro ao remover mosquito                  ')
+    try:
+        print_collor_blue('     -> Inicinado remoção do mosquitto                      ')
+        command = JSON_INFO['COMMAND']['REMOVE_MOSQUITTO']
+        subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquitto removido')
+        print_collor_green('      -> Removendo mosquitto                      ')
+    except:
+        print_collor_red('     -> Erro ao remover mosquito                  ')
              
 def installing_mosquitto():
     global CONF_INFO, INCOMPATIBILIRIES
@@ -534,25 +535,23 @@ def install_speedtest_cli():
     try:
         subprocess.run(["pip", "install", "speedtest-cli"], check=True)
         print_collor_green("    -> speedtest-cli instalado com sucesso!")
-        test_internet_speed()
     except subprocess.CalledProcessError as e:
         print_collor_red("Erro ao instalar speedtest-cli:", e)
 
 def test_internet_speed():
+    import speedtest
     global JSON_INFO
     print_collor_orange("-> Testando velocidade da internet...")
     try:
         st = speedtest.Speedtest()
         st.get_best_server()
-        
         download_speed = st.download() / 1e+6  
         upload_speed = st.upload() / 1e+6 
         JSON_INFO['MACHINE']['DOWNLOAD'] = f'{download_speed:.2f}'+'Mbps'
         JSON_INFO['MACHINE']['UPLOAD'] = f'{upload_speed:.2f}'+'Mbps'
     except Exception as e:
         print_collor_red("Erro ao testar velocidade da internet:", e)
-        
-        
+             
 # INICIALIZAR MACHINES
 def process_machines():
     print_collor_orange('-> Obtendo informações referente a machines...    ')
@@ -568,6 +567,7 @@ def process_machines():
     have_check_rabbit()
     have_mosquitto_check()
     check_speedtest_cli_installed()
+    test_internet_speed()
 
 # CONFIG FOR PRINT
 class ColorPrint(Enum):
