@@ -66,6 +66,7 @@ def inicialize_config():
                 'INTERNET': False,
                 'DOWNLOAD':'',
                 'UPLOAD':'',
+                'USAGE_HD%':'',
                 'RUNNING_JARVIS': False,
                 'RUNNING_RABBIT': False,
                 'RUNNING_MOSQUITTO': False,
@@ -105,6 +106,7 @@ def inicialize_config():
                     'REMOVE_MOSQUITTO':'sudo apt-get remove mosquitto -y',
                     'INSTALLING_RABBIT':'sudo apt-get install rabbitmq-server',
                     'INSTALLING_MOSQUITTO':'sudo apt-get install mosquitto -y',
+                    'HD_USAGE':'df /dev/mmcblk0p1'
                 }
         }
         CONF_INFO = config_comand  
@@ -273,28 +275,32 @@ def have_hostname_machines():
         
 def have_if_has_share():
     global JSON_INFO, CONF_INFO
-    print_color_orange('-> Verificar existencia da pasta share            ')
+    print_color_orange('-> Verificar existência da pasta share')
     try:
         command = CONF_INFO['COMMAND']['LS']
         output = subprocess.check_output(command, shell=True, universal_newlines=True)
-        JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = 'share' in  output
-        if JSON_INFO['MACHINE']['NO_EXIST_SHARE']:
+        JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = 'share' not in output
+        if not JSON_INFO['MACHINE']['NO_EXIST_SHARE']:
             print_color_red('-> Pasta share foi encontrada')
             if not JSON_INFO['JARVIS_ENV']['USE_SHARE']:
-                confirm = input('Você tem certeza que deseja excluir a pasta share? (Digite "sim" para confirmar): ')
-                if confirm.lower() == 'sim':
-                    delete_share_folder()
-                    print_color_orange('    -> Finalizando remoção da pasta share         ')
-                    JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = True
-                else:
-                    print_color_blue('-> Exclusão da pasta share cancelada.')
+                try:
+                    confirm = input('Você tem certeza que deseja excluir a pasta share? (Digite "sim" para confirmar): ')
+                    if confirm.lower() == 'sim':
+                        delete_share_folder()
+                        print_color_orange('-> Finalizando remoção da pasta share')
+                        JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = True
+                    else:
+                        print_color_blue('-> Exclusão da pasta share cancelada.')
+                except EOFError:
+                    print_color_red('-> Entrada interrompida. Exclusão da pasta share cancelada.')
             else:
-                print_color_red('     -> Pasta share está sendo usada             ')
-        JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = True
-        print_color_green('-> Finalizando verificação se existe pasta share  ')
-    except:
-        print_color_red('-> Erro ao verificar existencia da pasta share   ')
-
+                print_color_red('-> Pasta share está sendo usada')
+        else:
+            print_color_green('-> Pasta share não encontrada')
+        print_color_green('-> Finalizando verificação se existe pasta share')
+    except subprocess.CalledProcessError as e:
+        print_color_red('-> Erro ao verificar existência da pasta share:', e)
+        
 def delete_share_folder():
     global CONF_INFO, INCOMPATIBILIRIES
     print_color_blue('     -> Removendo pasta share                    ')
@@ -628,7 +634,6 @@ def test_internet_speed():
         print_color_red("Erro ao recuperar configuração do servidor. Verifique sua conexão com a internet.")
     except Exception as e:
         print_color_red("Erro ao testar velocidade da internet:", e)
-
         
 def print_jarvis_machines():
     global CONF_INFO
@@ -640,6 +645,17 @@ def print_jarvis_machines():
         print_color_green('Jarvis Machines finalizado')
     except:
         print_color_red('Erro ao executar jarvis machines')
+
+# def hd_usage_45():
+#     global JSON_INFO, CONF_INFO
+#     command = CONF_INFO['COMMAND']['HD_USAGE']
+#     try:
+#         print_color_orange('-> Verificando uso de Hd')
+#         result = subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+#         print_color_green('-> Finalização verifição do uso de hd')
+#     except:
+#         print_color_red('-> Erro ao tentar verificar uso de hd')
              
 # INICIALIZAR MACHINES
 def process_machines():
