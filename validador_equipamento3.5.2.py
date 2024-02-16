@@ -276,22 +276,16 @@ def have_hostname_machines():
         
 def have_if_has_share():
     global JSON_INFO, CONF_INFO
-    
     print_color_orange('-> Verificar existência da pasta share')
-    
     try:
         command = CONF_INFO['COMMAND']['LS']
         output = subprocess.check_output(command, shell=True, universal_newlines=True)
-        
         JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = 'share' not in output
-        
         if not JSON_INFO['MACHINE']['NO_EXIST_SHARE']:
             print_color_red('-> Pasta share foi encontrada')
-            
             if not JSON_INFO['JARVIS_ENV']['USE_SHARE']:
                 try:
                     confirm = input('Você tem certeza que deseja excluir a pasta share? (Digite "sim" para confirmar): ')
-                    
                     if confirm.lower() == 'sim':
                         delete_share_folder()
                         print_color_orange('-> Finalizando remoção da pasta share')
@@ -304,9 +298,7 @@ def have_if_has_share():
                 print_color_red('-> Pasta share está sendo usada')
         else:
             print_color_green('-> Pasta share não encontrada')
-            
         print_color_green('-> Finalizando verificação se existe pasta share')
-        
     except subprocess.CalledProcessError as e:
         print_color_red('-> Erro ao verificar existência da pasta share:', e)
 
