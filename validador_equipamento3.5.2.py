@@ -179,7 +179,7 @@ def exec_validation_version_cashier():
         # subprocess.check_output(['sudo', 'nano', '/home/pi/.config/autostart/cloudpark.desktop'])
         print_color_green('     -> Caixa atualizado com sucesso')
     except Exception as e:
-        print_color_red('      -> Erro ao tentear atualizar o caixa ', e) """
+        print_color_red('      -> Erro ao tentear atualizar o caixa ', str(e)) """
 
 def load_config_jarvis_env():
     print_color_orange('-> Iniciando carregamento de json informações...  ')
@@ -199,7 +199,7 @@ def load_config_jarvis_env():
                         
         print_color_green('-> Finalizando carregamento de json informações...')        
     except Exception as e:
-        print_color_red('-> Erro ao carregar json de informações:', e)
+        print_color_red('-> Erro ao carregar json de informações:', str(e))
 
 def has_swap():
     global JSON_INFO
@@ -211,7 +211,7 @@ def has_swap():
             JSON_INFO['JARVIS_ENV']['HAS_STAMP'] = 'STAMP: true' in conteudo
         print_color_green('    -> Finalizando verificação STAMP')
     except Exception as e:
-        print_color_red('     -> Erro ao executar verificação STAMP:', e)
+        print_color_red('     -> Erro ao executar verificação STAMP:', str(e))
 
 
 def have_ip_info():
@@ -233,7 +233,7 @@ def have_ip_info():
             INCOMPATIBILIRIES['UNCONFORMITIES'].add('É necessário fixar IP')
         print_color_green('-> Finalizando obtenção de ip machines              ')
     except Exception as e:
-        print_color_red('-> Erro ao obter informações referente a machines:', e)
+        print_color_red('-> Erro ao obter informações referente a machines:', str(e))
 
 def have_router_default():
     try:
@@ -248,7 +248,7 @@ def have_router_default():
                 JSON_INFO['MACHINE']['ROUTE'] = router_ip     
         print_color_green('    -> Finalização obter ip router                ')
     except Exception as e:
-        print_color_red('-> Erro ao obter informações do IP do route:', e)
+        print_color_red('-> Erro ao obter informações do IP do route:', str(e))
 
 
 def have_machine_data():
@@ -260,7 +260,7 @@ def have_machine_data():
         JSON_INFO['MACHINE']['DATE'] = output
         print_color_green('-> Finalizando data e hora da máquina')
     except Exception as e:
-        print_color_red('-> Erro ao obter informações do IP do roteador padrão:', e)
+        print_color_red('-> Erro ao obter informações do IP do roteador padrão:', str(e))
 
 def have_hostname_machines():
     print_color_orange('-> Obtendo hostname da máquina                    ')
@@ -272,7 +272,7 @@ def have_hostname_machines():
         JSON_INFO['MACHINE']['HOSTNAME'] = conteudo
         print_color_green('-> Finalizando obtenção do hostname               ')
     except Exception as e:
-        print_color_red('-> Erro ao obter hostname:', e)
+        print_color_red('-> Erro ao obter hostname:', str(e))
         
 def have_if_has_share():
     global JSON_INFO, CONF_INFO
@@ -297,7 +297,7 @@ def have_if_has_share():
         JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = True
         print_color_green('-> Finalizando verificação se existe pasta share  ')
     except Exception as e:
-        print_color_red('-> Erro ao verificar existencia da pasta share:', e)
+        print_color_red('-> Erro ao verificar existencia da pasta share:', str(e))
 
 def delete_share_folder():
     global CONF_INFO, INCOMPATIBILIRIES
@@ -307,7 +307,7 @@ def delete_share_folder():
         subprocess.check_output(command, shell=True)
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('PASTA SHARE REMOVIDA')
     except Exception as e:
-        print_color_red('-> Erro ao deletar pasta share:', e)
+        print_color_red('-> Erro ao deletar pasta share:', str(e))
         
 def exec_validation_swap():
     global JSON_INFO, CONF_INFO
@@ -323,7 +323,7 @@ def exec_validation_swap():
         JSON_INFO['MACHINE']['NO_USE_SWAP'] = True
         print_color_green('-> Finalizando verificar uso do swap                          ')
     except Exception as e:
-        print_color_red('-> Erro ao verificar uso do swap:', e)
+        print_color_red('-> Erro ao verificar uso do swap:', str(e))
 
    
 def clear_swap():
@@ -335,7 +335,7 @@ def clear_swap():
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('LIMPEZA SWAP')
         print_color_green('     -> Finalizando limpeza do SWAP             ')   
     except Exception as e:
-        print_color_red('-> Erro ao executar limpeza de swap:', e)
+        print_color_red('-> Erro ao executar limpeza de swap:', str(e))
 
 def have_test_internet_connection():
     global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
@@ -350,7 +350,7 @@ def have_test_internet_connection():
             print_color_red('      -> Sem conexão com a internet               ')
         print_color_green('-> Finalizando verificação internet               ')
     except Exception as e:
-        print_color_red('-> Erro ao tentar verificar conexão com a internet:', e) 
+        print_color_red('-> Erro ao tentar verificar conexão com a internet:', str(e)) 
 
 def exec_jarvis_status():
     global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
@@ -365,7 +365,7 @@ def exec_jarvis_status():
             print_color_red('     -> Jarvis não está funcionando')
             INCOMPATIBILIRIES['UNCONFORMITIES'].add('JARVIS DEAD')        
     except Exception as e:
-        print_color_red('-> Erro ao verificar funcionamento jarviz:', e)
+        print_color_red('-> Erro ao verificar funcionamento jarviz:', str(e))
 
 def have_log_jarvis():
     global JSON_INFO, LOG_JARVIS
@@ -385,7 +385,7 @@ def have_log_jarvis():
             JSON_INFO['MACHINE']['LOG_JARVIS_OK'] = True
             print_color_green('-> Log verificado com sucesso                       ')
     except Exception as e:
-        print_color_red('-> Erro ao verificar log do jarvis:', e)
+        print_color_red('-> Erro ao verificar log do jarvis:', str(e))
 
 def install_sqlite3():
     global CONF_INFO
@@ -424,7 +424,7 @@ def have_sqlite3_check():
         print_color_green('-> Finalizando verificação SQLITE3')
         JSON_INFO['MACHINE']['EXIST_SQLITE3'] = True
     except Exception as e:
-        print_color_red('-> Erro ao verificar instalação SQLITE3:', e)
+        print_color_red('-> Erro ao verificar instalação SQLITE3:', str(e))
 
 def have_check_rabbit():
     global JSON_INFO, CONF_INFO, INCOMPATIBILIRIES
@@ -446,7 +446,7 @@ def have_check_rabbit():
             status_rabbit()
         print_color_green('-> Finalizando verificação do Rebbit              ')
     except Exception as e:
-        print_color_red('-> Erro ao executar verificação do Rebbbit:', e)
+        print_color_red('-> Erro ao executar verificação do Rebbbit:', str(e))
 
 def status_rabbit():
     global CONF_INFO, JSON_INFO
@@ -479,7 +479,7 @@ def remover_rabbit():
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Rabbit removido')
         print_color_green('     -> Finalizando remoção do Rabbit                  ')
     except Exception as e:
-        print_color_red('     -> Erro ao remover o Rabbit:', e)
+        print_color_red('     -> Erro ao remover o Rabbit:', str(e))
 
 def restart_rabbit():
     global CONF_INFO
@@ -489,7 +489,7 @@ def restart_rabbit():
         subprocess.run(restart_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print_color_green('     -> Rabbit reiniciado                        ')
     except Exception as e:
-        print_color_red('     -> Erro ao reiniciar Rabbit:', e)
+        print_color_red('     -> Erro ao reiniciar Rabbit:', str(e))
 
 def installing_rabbit():
     global CONF_INFO, INCOMPATIBILIRIES
@@ -502,7 +502,7 @@ def installing_rabbit():
         print_color_blue('     -> Instalação do rabbit concluída           ')
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Rabbit instalado')
     except Exception as e:
-        print_color_red('     -> Erro ao instalar rabbit:', e)
+        print_color_red('     -> Erro ao instalar rabbit:', str(e))
 
 def create_rabbitmq_config():
     global JSON_INFO
@@ -514,7 +514,7 @@ def create_rabbitmq_config():
             arquivo.write(conteudo) 
         print_color_green('     -> Arquivo alterado do Rabbit               ')
     except Exception as e:
-        print_color_red('     -> Erro ao alterar arquivo Rabbit:', e)
+        print_color_red('     -> Erro ao alterar arquivo Rabbit:', str(e))
 
 def print_log_jarvis():
     print('LOG_JARVIS:')
@@ -551,7 +551,7 @@ def have_mosquitto_check():
             status_mosquitto()
         print_color_green('-> Finalizando verificação do Mosquitto     ')
     except Exception as e:
-        print_color_red('-> Erro ao executar verificação do Mosquitto:', e)
+        print_color_red('-> Erro ao executar verificação do Mosquitto:', str(e))
 
 def status_mosquitto():
     global CONF_INFO, JSON_INFO
@@ -579,7 +579,7 @@ def config_mosquitto():
             arquivo.write(conteudo)
         print_color_green('     -> Arquivo Mosquitto alterado com sucesso    ')
     except Exception as e:
-        print_color_red('     -> Erro ao alterar arquivo Mosquitto:', e)
+        print_color_red('     -> Erro ao alterar arquivo Mosquitto:', str(e))
 
 def remover_mosquitto():
     try:
@@ -589,7 +589,7 @@ def remover_mosquitto():
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquitto removido')
         print_color_green('     -> Mosquitto removido com sucesso                      ')
     except Exception as e:
-        print_color_red('     -> Erro ao remover mosquito:', e)
+        print_color_red('     -> Erro ao remover mosquito:', str(e))
              
 def installing_mosquitto():
     global CONF_INFO, INCOMPATIBILIRIES
@@ -602,7 +602,7 @@ def installing_mosquitto():
         print_color_blue('     -> Finalizada a instalação mosquitto           ')
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquitto instalado')
     except Exception as e:
-        print_color_red('     -> Erro ao instalar mosquitto:', e)
+        print_color_red('     -> Erro ao instalar mosquitto:', str(e))
    
 def check_speedtest_cli_installed():
     print_color_orange('-> Verificando se speedtest-cli está instalado...')
@@ -620,7 +620,7 @@ def install_speedtest_cli():
         subprocess.run(["sudo", "pip3", "install", "speedtest-cli"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print_color_green('    -> speedtest-cli instalado com sucesso!')
     except subprocess.CalledProcessError as e:
-        print_color_red('Erro ao instalar speedtest-cli:', e)
+        print_color_red('Erro ao instalar speedtest-cli:', str(e))
 
 def test_internet_speed():
     import speedtest
@@ -638,7 +638,7 @@ def test_internet_speed():
     except speedtest.ConfigRetrievalError:
         print_color_red("Erro ao recuperar configuração do servidor. Verifique sua conexão com a internet.")
     except Exception as e:
-        print_color_red("Erro ao testar velocidade da internet:", e)
+        print_color_red("Erro ao testar velocidade da internet:", str(e))
 
         
 import subprocess
@@ -652,9 +652,9 @@ def print_jarvis_machines():
         print(result.decode('utf-8'))
         print_color_green('Jarvis Machines finalizado')
     except subprocess.CalledProcessError as e:
-        print_color_red('Erro ao executar jarvis machines:', e)
+        print_color_red('Erro ao executar jarvis machines:', str(e))
     except Exception as e:
-        print_color_red('Erro ao executar jarvis machines:', e)
+        print_color_red('Erro ao executar jarvis machines:', str(e))
 
              
 # INICIALIZAR MACHINES
@@ -751,3 +751,4 @@ def main():
 if __name__ == "__main__":
     
     main()
+    
