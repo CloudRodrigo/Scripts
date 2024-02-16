@@ -156,14 +156,15 @@ def exec_validation_version_cashier():
         result = subprocess.check_output(command_version_cashier, shell=True, universal_newlines=True)
         match = re.search(r'Version: (\d+\.\d+\.\d+)', result)
         JSON_INFO['MACHINE']['VERSION_CASHIER'] = match.group(1)
-        JSON_INFO['MACHINE']['CURRENT_VERSION_CASHIER'] = f'Version: {version_cashier}' in result
+        JSON_INFO['MACHINE']['CURRENT_VERSION_CASHIER'] = 'Version: {}'.format(version_cashier) in result
         if not JSON_INFO['MACHINE']['CURRENT_VERSION_CASHIER']:
-            INCOMPATIBILIRIES['UNCONFORMITIES'].add(f'Caixa atualizado')
+            INCOMPATIBILIRIES['UNCONFORMITIES'].add('Caixa atualizado')
             # update_version_cashier()
     except subprocess.CalledProcessError as e:
-        print_color_red(f'Erro ao executar o comando: {e}')
+        print_color_red('Erro ao executar o comando: {}'.format(e))
     except Exception as e:
-        print_color_red(f'Erro inesperado: {e}')
+        print_color_red('Erro inesperado: {}'.format(e))
+
 
 """ def update_version_cashier():
     global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
@@ -726,7 +727,7 @@ def print_color_blue(text):
     
 def head(text):
     print_color_yellow("-" * 50)
-    print_color_yellow(f'{text}')
+    print_color_yellow('{}'.format(text))
     print_color_yellow("-" * 50)
 
 # MAIN 
