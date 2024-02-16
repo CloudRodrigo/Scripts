@@ -498,7 +498,7 @@ def installing_rabbit():
 def create_rabbitmq_config():
     global JSON_INFO
     conteudo = "[{rabbit, [{loopback_users, []}]}]."
-    config_path = JSON_INFO['PATHS']['create_rabbitmq_config']
+    config_path = JSON_INFO['PATHS']['CREATE_RABBITMQ_CONFIG']
     try:
         print_color_blue('     -> Alterando arquivo Rabbit                  ')
         with open(config_path, 'w') as arquivo:  
