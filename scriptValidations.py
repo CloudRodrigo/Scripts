@@ -74,9 +74,7 @@ def inicialize_config():
             },
             'OTHERS':{
                 'VERSION_CASHIER':'23.10.2',
-                'LINK_UPPDATE_VERSION_CHASHIER':'https://s3.sa-east-1.amazonaws.com/ferramentas.cloudpark.com.br/caixa/cloudpark-desktop_23.10.2_amd64.deb"'
-
-
+                'LINK_UPPDATE_VERSION_CHASHIER':'https://s3.sa-east-1.amazonaws.com/ferramentas.cloudpark.com.br/caixa/cloudpark-desktop_23.10.2_amd64.deb"',
             }
         }
         JSON_INFO = config_path  
