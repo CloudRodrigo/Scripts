@@ -606,7 +606,7 @@ def install_speedtest_cli():
     try:
         print_color_orange('-> Instalando speedtest-cli...')
         subprocess.run(["sudo", "apt", "install", "-y", "python3-pip"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["sudo", "pip", "install", "speedtest-cli"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["sudo", "pip3", "install", "speedtest-cli"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print_color_green('    -> speedtest-cli instalado com sucesso!')
     except subprocess.CalledProcessError as e:
         print_color_red('Erro ao instalar speedtest-cli', e)
@@ -728,3 +728,4 @@ def main():
 if __name__ == "__main__":
     
     main()
+    
