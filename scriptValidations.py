@@ -609,7 +609,7 @@ def install_speedtest_cli():
         subprocess.run(["sudo", "pip", "install", "speedtest-cli"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print_color_green('    -> speedtest-cli instalado com sucesso!')
     except subprocess.CalledProcessError as e:
-        print_color_red('Erro ao instalar speedtest-cli')
+        print_color_red('Erro ao instalar speedtest-cli', e)
 
 def test_internet_speed():
     import speedtest
@@ -728,4 +728,3 @@ def main():
 if __name__ == "__main__":
     
     main()
-    
