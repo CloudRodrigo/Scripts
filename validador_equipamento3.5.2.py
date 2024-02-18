@@ -66,7 +66,6 @@ def inicialize_config():
                 'INTERNET': False,
                 'DOWNLOAD':'',
                 'UPLOAD':'',
-                'USAGE_HD%':'',
                 'RUNNING_JARVIS': False,
                 'RUNNING_RABBIT': False,
                 'RUNNING_MOSQUITTO': False,
@@ -106,7 +105,6 @@ def inicialize_config():
                     'REMOVE_MOSQUITTO':'sudo apt-get remove mosquitto -y',
                     'INSTALLING_RABBIT':'sudo apt-get install rabbitmq-server',
                     'INSTALLING_MOSQUITTO':'sudo apt-get install mosquitto -y',
-                    'HD_USAGE':'df /dev/mmcblk0p1'
                 }
         }
         CONF_INFO = config_comand  
@@ -131,15 +129,15 @@ def exec_cache_existente():
             load_config_jarvis_env()
             has_swap()
     except Exception as e:
-        print_color_red('-> Erro ao carregar json de informações: ' + str(e))
+        print_color_red('-> Erro ao carregar json de informações: ' + e)
 
 def is_cache():
     global JSON_INFO
     path_file = JSON_INFO['PATHS']['AUTOSTART_CLOUDPARK']
     try:
         print_color_orange('-> Verificando AutoStart')
-        with open(path_file, 'r') as arquivo:  
-            conteudo = arquivo.read()  
+        with open(path_file, 'r') as arquivo:
+            conteudo = arquivo.read()
             if 'CloudPark' in conteudo:
                 print_color_blue('     -> Equipamento tipo CAIXA                   ')
                 JSON_INFO['JARVIS_ENV']['HAS_CASHIER'] = True
@@ -150,6 +148,7 @@ def is_cache():
     except Exception as e:
         print_color_red('-> Erro ao tentar verificar AutoStart: ' + str(e))
 
+
 def exec_validation_version_cashier():
     global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
     command_version_cashier = CONF_INFO['COMMAND']['VERSION_CASHIER']
@@ -158,30 +157,30 @@ def exec_validation_version_cashier():
         result = subprocess.check_output(command_version_cashier, shell=True, universal_newlines=True)
         match = re.search(r'Version: (\d+\.\d+\.\d+)', result)
         JSON_INFO['MACHINE']['VERSION_CASHIER'] = match.group(1)
-        JSON_INFO['MACHINE']['CURRENT_VERSION_CASHIER'] = f'Version: {version_cashier}' in result
+        JSON_INFO['MACHINE']['CURRENT_VERSION_CASHIER'] = 'Version: {}'.format(version_cashier) in result
         if not JSON_INFO['MACHINE']['CURRENT_VERSION_CASHIER']:
-            INCOMPATIBILIRIES['UNCONFORMITIES'].add(f'Caixa atualizado')
+            INCOMPATIBILIRIES['UNCONFORMITIES'].add('Caixa atualizado')
             # update_version_cashier()
     except subprocess.CalledProcessError as e:
-        print_color_red(f'Error executing the command: {e}')
+        print_color_red('Erro ao executar o comando: {}'.format(e))
     except Exception as e:
-        print_color_red(f'Unexpected error: {e}')
+        print_color_red('Erro inesperado: {}'.format(e))
+
 
 """ def update_version_cashier():
     global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
-    version_cashier= JSON_INFO['OTHERS']['VERSION_CASHIER']
-    link_uppdate_version_chashier= JSON_INFO['OTHERS']['LINK_UPPDATE_VERSION_CHASHIER']
+    version_cashier = JSON_INFO['OTHERS']['VERSION_CASHIER']
+    link_update_version_cashier = JSON_INFO['OTHERS']['LINK_UPDATE_VERSION_CASHIER']
     try:
-        print_color_orange('     ->Iniciando Atualização caixa')
-        subprocess.check_output(['wget', link_uppdate_version_chashier]).decode('utf-8')
+        print_color_orange('     -> Iniciando Atualização caixa')
+        subprocess.check_output(['wget', link_update_version_cashier]).decode('utf-8')
         subprocess.check_output(['sudo', 'dpkg', '--purge', 'cloudpark-desktop']).decode('utf-8')
         subprocess.check_output(['sudo', 'apt-get', 'update'])
-        subprocess.check_output(['sudo', 'dpkg', '-i','cloudpark-desktop_'+version_cashier+'_amd64.deb'])
+        subprocess.check_output(['sudo', 'dpkg', '-i', 'cloudpark-desktop_'+version_cashier+'_amd64.deb'])
         # subprocess.check_output(['sudo', 'nano', '/home/pi/.config/autostart/cloudpark.desktop'])
         print_color_green('     -> Caixa atualizado com sucesso')
-        
     except Exception as e:
-        print_color_red('      -> Erro ao tentear atualizar o caixa ')   """
+        print_color_red('      -> Erro ao tentear atualizar o caixa ', e) """
 
 def load_config_jarvis_env():
     print_color_orange('-> Iniciando carregamento de json informações...  ')
@@ -200,24 +199,26 @@ def load_config_jarvis_env():
             JSON_INFO['JARVIS_ENV']['USE_SHARE'] = 'share' in conteudo
                         
         print_color_green('-> Finalizando carregamento de json informações...')        
-    except:
-        print_color_red('-> Erro ao carregar json de informações           ')        
- 
+    except Exception as e:
+        print_color_red('-> Erro ao carregar json de informações:', e)
+
 def has_swap():
     global JSON_INFO
-    path_file = JSON_INFO['PATHS']['CONFIG_HARDWARE']   
+    path_file = JSON_INFO['PATHS']['CONFIG_HARDWARE']
     try:
         print_color_blue('     -> Verificando se é STAMP')
         with open(path_file, 'r') as arquivo:
             conteudo = arquivo.read()
             JSON_INFO['JARVIS_ENV']['HAS_STAMP'] = 'STAMP: true' in conteudo
-        print_color_green('    -> Finalizando veriificação STAMP')
-    except:
-        print_color_red('     -> Erro ao executar verificação STAMP')
+        print_color_green('    -> Finalizando verificação STAMP')
+    except Exception as e:
+        print_color_red('     -> Erro ao executar verificação STAMP:', e)
+
+
 def have_ip_info():
-    global JSON_INFO, CONF_INFO
-    try:        
-        print_color_orange('-> Iniciando obtenção de ip machines              ')        
+    global JSON_INFO, CONF_INFO, INCOMPATIBILIRIES
+    try:
+        print_color_orange('-> Iniciando obtenção de ip machines              ')
         print_color_blue('    -> Obtendo dados do jarvis ip                ')
         command = CONF_INFO['COMMAND']['JARVIS_IP'] 
         output = subprocess.check_output(command, shell=True, universal_newlines=True)
@@ -232,34 +233,35 @@ def have_ip_info():
         if not JSON_INFO['MACHINE']['IP_FIXO']:
             INCOMPATIBILIRIES['UNCONFORMITIES'].add('É necessário fixar IP')
         print_color_green('-> Finalizando obtenção de ip machines              ')
-    except:
-        print_color_red('-> Erro ao obter informações referente a machines:')
+    except Exception as e:
+        print_color_red('-> Erro ao obter informações referente a machines:', e)
 
 def have_router_default():
     try:
         print_color_blue('    -> Obtendo ip router                          ')
         global JSON_INFO, CONF_INFO
         command = CONF_INFO['COMMAND']['GET_IP_ROUTER'] 
-        output = subprocess.check_output(command, shell=True, universal_newlines=True)
+        output = subprocess.check_output(command, shell=True).decode('utf-8')
         lines = output.split('\n')
         for line in lines:
             if 'default via' in line:
                 router_ip = line.split(' ')[2]
                 JSON_INFO['MACHINE']['ROUTE'] = router_ip     
         print_color_green('    -> Finalização obter ip router                ')
-    except:
-        print_color_red('-> Erro ao obter informações do IP do route       ')
+    except Exception as e:
+        print_color_red('-> Erro ao obter informações do IP do route:', e)
+
 
 def have_machine_data():
     print_color_orange('-> Verificando data e hora da máquina             ')
     try:
         global JSON_INFO, CONF_INFO
         command = CONF_INFO['COMMAND']['DATE'] 
-        output = subprocess.check_output(command, shell=True, universal_newlines=True).strip()
+        output = subprocess.check_output(command, shell=True).decode('utf-8').strip()
         JSON_INFO['MACHINE']['DATE'] = output
         print_color_green('-> Finalizando data e hora da máquina')
-    except:
-        print_color_red('-> Erro ao obter informações do IP do roteador padrão:')
+    except Exception as e:
+        print_color_red('-> Erro ao obter informações do IP do roteador padrão:', e)
 
 def have_hostname_machines():
     print_color_orange('-> Obtendo hostname da máquina                    ')
@@ -270,8 +272,8 @@ def have_hostname_machines():
             conteudo = arquivo.read().strip() 
         JSON_INFO['MACHINE']['HOSTNAME'] = conteudo
         print_color_green('-> Finalizando obtenção do hostname               ')
-    except:
-        print_color_red('-> Erro ao obter hostname                         ')
+    except Exception as e:
+        print_color_red('-> Erro ao obter hostname:', e)
         
 def have_if_has_share():
     global JSON_INFO, CONF_INFO
@@ -300,70 +302,74 @@ def have_if_has_share():
         print_color_green('-> Finalizando verificação se existe pasta share')
     except subprocess.CalledProcessError as e:
         print_color_red('-> Erro ao verificar existência da pasta share:', e)
-        
+
 def delete_share_folder():
     global CONF_INFO, INCOMPATIBILIRIES
     print_color_blue('     -> Removendo pasta share                    ')
     try:
         command = CONF_INFO['COMMAND']['DELETE_SHARE']
-        subprocess.check_output(command, shell=True, universal_newlines=True)
+        subprocess.check_output(command, shell=True)
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('PASTA SHARE REMOVIDA')
-    except:
-        print_color_red('-> Erro ao deletar pasta share')
+    except Exception as e:
+        print_color_red('-> Erro ao deletar pasta share:', e)
         
 def exec_validation_swap():
     global JSON_INFO, CONF_INFO
     print_color_orange('-> Verificar uso do swap                          ')
     try:
         command = CONF_INFO['COMMAND']['CHECK_SWAP']
-        output = subprocess.check_output(command, shell=True, universal_newlines=True)
+        output = subprocess.check_output(command, shell=True)
+        output = output.decode('utf-8')  
         swap_line = [line for line in output.split('\n') if 'Swap' in line][0]
         JSON_INFO['MACHINE']['NO_USE_SWAP'] = '0B' in swap_line
         if not JSON_INFO['MACHINE']['NO_USE_SWAP']:
             clear_swap()
         JSON_INFO['MACHINE']['NO_USE_SWAP'] = True
         print_color_green('-> Finalizando verificar uso do swap                          ')
-    except:
-        print_color_red('-> Erro ao verificar uso do swap                  ')
+    except Exception as e:
+        print_color_red('-> Erro ao verificar uso do swap:', e)
+
    
 def clear_swap():
     global CONF_INFO, INCOMPATIBILIRIES
     print_color_blue('     -> Iniciando limpeza do SWAP             ')
     try:
         command = CONF_INFO['COMMAND']['CLEAR_SWAP']
-        subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('LIMPEZA SWAP')
         print_color_green('     -> Finalizando limpeza do SWAP             ')   
-    except:
-        print_color_red('-> Erro ao executar limpeza de swap               ')
+    except Exception as e:
+        print_color_red('-> Erro ao executar limpeza de swap:', e)
 
 def have_test_internet_connection():
-    global CONF_INFO, INCOMPATIBILIRIES
+    global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
     print_color_orange('-> Verificação de internet...                     ')
     try:
         command = CONF_INFO['COMMAND']['TESTE_PING']
-        output = subprocess.check_output(command, shell=True, universal_newlines=True)
-        JSON_INFO['MACHINE']['INTERNET'] ='PING google.com' in output;
+        output = subprocess.check_output(command, shell=True)
+        output = output.decode('utf-8')  # Convertendo bytes para string
+        JSON_INFO['MACHINE']['INTERNET'] = 'PING google.com' in output
         if not JSON_INFO['MACHINE']['INTERNET']:
             INCOMPATIBILIRIES['UNCONFORMITIES'].add('SEM CONEXAO A INTERNET')
             print_color_red('      -> Sem conexão com a internet               ')
         print_color_green('-> Finalizando verificação internet               ')
-    except:
-        print_color_red('-> Erro ao tentar verificar conexão com a internet')    
+    except Exception as e:
+        print_color_red('-> Erro ao tentar verificar conexão com a internet:', e) 
 
 def exec_jarvis_status():
-    global CONF_INFO, INCOMPATIBILIRIES
+    global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
     print_color_orange('-> Verificando funcionamento jarvis               ')
     try:
         command = CONF_INFO['COMMAND']['JARVIS_STATUS']
-        result = subprocess.check_output(command, shell=True, universal_newlines=True)
+        result = subprocess.check_output(command, shell=True)
+        result = result.decode('utf-8')  # Convertendo bytes para string
         JSON_INFO['MACHINE']['RUNNING_JARVIS'] = 'running' in result
         
         if not JSON_INFO['MACHINE']['RUNNING_JARVIS']:
-            print_color_red('     -> Jarvis nao esta funciondo')
+            print_color_red('     -> Jarvis não está funcionando')
             INCOMPATIBILIRIES['UNCONFORMITIES'].add('JARVIS DEAD')        
-    except:
-        print_color_red('-> Erro ao verificar funcionamento jarviz         ')
+    except Exception as e:
+        print_color_red('-> Erro ao verificar funcionamento jarviz:', e)
 
 def have_log_jarvis():
     global JSON_INFO, LOG_JARVIS
@@ -374,16 +380,16 @@ def have_log_jarvis():
             linhas = arquivo.readlines()
             ultimas_20_linhas = linhas[-20:]
             for linha in ultimas_20_linhas:
-                if ('ERRO' or 'CRITICAL')in linha:
+                if 'ERRO' in linha or 'CRITICAL' in linha:
                     LOG_JARVIS = ultimas_20_linhas
                     INCOMPATIBILIRIES['UNCONFORMITIES'].add('LOG JARVIS COM ERRO')
                     print_color_red('-> Erro encontrado no log do jarvis')
                     break
-        if LOG_JARVIS is  None:  
+        if LOG_JARVIS is None:  
             JSON_INFO['MACHINE']['LOG_JARVIS_OK'] = True
             print_color_green('-> Log verificado com sucesso                       ')
-    except:
-        print_color_red('-> Erro ao verificar log do jarvis                ')
+    except Exception as e:
+        print_color_red('-> Erro ao verificar log do jarvis:', e)
 
 def install_sqlite3():
     global CONF_INFO
@@ -403,8 +409,8 @@ def have_sqlite3_check():
     is_server = JSON_INFO['JARVIS_ENV']['IS_SERVER']
     command = CONF_INFO['COMMAND']['FIND_SQLITE3']
     try:
-        find_sqlite3 = subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        find_sqlite3_stdout = find_sqlite3.stdout.strip()
+        find_sqlite3 = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        find_sqlite3_stdout = find_sqlite3.stdout.decode().strip()
     except subprocess.CalledProcessError:
         find_sqlite3_stdout = None
     try:        
@@ -421,16 +427,16 @@ def have_sqlite3_check():
                 remove_sqlite3()
         print_color_green('-> Finalizando verificação SQLITE3')
         JSON_INFO['MACHINE']['EXIST_SQLITE3'] = True
-    except:
-        print_color_red('-> Erro ao verificar instalação SQLITE3')
+    except Exception as e:
+        print_color_red('-> Erro ao verificar instalação SQLITE3:', e)
 
 def have_check_rabbit():
     global JSON_INFO, CONF_INFO, INCOMPATIBILIRIES
     print_color_orange('-> Iniciando verificação do Rebbit                ')
-    is_serve = JSON_INFO['JARVIS_ENV']['IS_SERVER']
+    is_server = JSON_INFO['JARVIS_ENV']['IS_SERVER']
     status_rabbit()
     try:
-        if is_serve:
+        if is_server:
             if JSON_INFO['MACHINE']['RUNNING_RABBIT']:
                 restart_rabbit()
                 create_rabbitmq_config()
@@ -439,25 +445,26 @@ def have_check_rabbit():
                 create_rabbitmq_config()
             restart_rabbit()
             status_rabbit()
-        elif not is_serve and JSON_INFO['MACHINE']['RUNNING_RABBIT']:
+        elif not is_server and JSON_INFO['MACHINE']['RUNNING_RABBIT']:
             remover_rabbit()
             status_rabbit()
         print_color_green('-> Finalizando verificação do Rebbit              ')
-    except:
-        print_color_red('-> Erro ao executar verificação do Rebbbit ')
+    except Exception as e:
+        print_color_red('-> Erro ao executar verificação do Rebbbit:', e)
 
 def status_rabbit():
     global CONF_INFO, JSON_INFO
     command = CONF_INFO['COMMAND']['RABBIT_STATUS']
     try:
         print_color_blue('     -> Verificando status rabbit                 ')
-        result = subprocess.check_output(command, shell=True, universal_newlines=True)
+        result = subprocess.check_output(command, shell=True)
+        result = result.decode('utf-8')  
         if "running" in result:
             JSON_INFO['MACHINE']['RUNNING_RABBIT'] = True
             print_color_green('     -> Rabbit encontrado                 ')
         else:
             JSON_INFO['MACHINE']['RUNNING_RABBIT'] = False
-            print_color_red('     -> Rabbit nao encontrado                 ')
+            print_color_red('     -> Rabbit não encontrado                 ')
     except subprocess.CalledProcessError as e:
         print_color_red('     -> Erro ao verificar o status do RabbitMQ.  ')
         
@@ -469,37 +476,37 @@ def remover_rabbit():
         remover_rabbit_auto_remove = 'sudo apt-get remove --auto-remove rabbitmq-server -y'
         purge_rabbit_auto_remove = 'sudo apt-get purge --auto-remove rabbitmq-server -y'
         update_command = CONF_INFO['COMMAND']['UPDATE']
-        subprocess.run(remover_rabbit_simple, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        subprocess.run(remover_rabbit_auto_remove, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        subprocess.run(purge_rabbit_auto_remove, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        subprocess.run(update_command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(remover_rabbit_simple, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(remover_rabbit_auto_remove, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(purge_rabbit_auto_remove, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(update_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Rabbit removido')
         print_color_green('     -> Finalizando remoção do Rabbit                  ')
-    except:
-        print_color_red('     -> Erro ao remover o Rabbit')
+    except Exception as e:
+        print_color_red('     -> Erro ao remover o Rabbit:', e)
 
 def restart_rabbit():
     global CONF_INFO
     restart_command = CONF_INFO['COMMAND']['RESTART_RABBIT']
     try:
         print_color_blue('     -> Reiniciando Rabbit                       ')
-        subprocess.run(restart_command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(restart_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print_color_green('     -> Rabbit reiniciado                        ')
-    except:
-        print_color_red('     -> Erro ao reiniciar Rabbit                 ')
+    except Exception as e:
+        print_color_red('     -> Erro ao reiniciar Rabbit:', e)
 
 def installing_rabbit():
     global CONF_INFO, INCOMPATIBILIRIES
     install_rabbit = CONF_INFO['COMMAND']['INSTALLING_RABBIT']
     try:
-        print_color_blue('     -> Inicinado instalação rabbbit              ')
-        process = subprocess.Popen(install_rabbit, shell=True, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        process.communicate(input='Y\n')
+        print_color_blue('     -> Iniciando instalação rabbit              ')
+        process = subprocess.Popen(install_rabbit, shell=True, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        process.communicate(input='Y\n'.encode())
         process.wait()
-        print_color_blue('     -> Finalizado a instalação rabbbit           ')
+        print_color_blue('     -> Instalação do rabbit concluída           ')
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Rabbit instalado')
-    except:
-        print_color_red('     -> Erro ao instalar rabbbit                  ')
+    except Exception as e:
+        print_color_red('     -> Erro ao instalar rabbit:', e)
 
 def create_rabbitmq_config():
     global JSON_INFO
@@ -516,53 +523,55 @@ def create_rabbitmq_config():
 def print_log_jarvis():
     print('LOG_JARVIS:')
     if LOG_JARVIS is not None:
-        for linha in LOG_JARVIS:          
-            print(linha.strip())    
+        for linha in LOG_JARVIS:
+            print(linha.strip())
 
 def fixing_ip():
     global JSON_INFO
     local_ip = JSON_INFO['MACHINE']['LOCAL_IP']
     route = JSON_INFO['MACHINE']['ROUTE']
     dns = JSON_INFO['MACHINE']['DNS']
-    command = f'sudo jarvis ip --static {local_ip} --mask 24 --gateway {route} --dns {dns}'
+    command = 'sudo jarvis ip --static {} --mask 24 --gateway {} --dns {}'.format(local_ip, route, dns)
     if not JSON_INFO['MACHINE']['IP_FIXO']:
         head('                    FIXANDO IP                    ')  
-        subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
         
 def have_mosquitto_check():
     global JSON_INFO, CONF_INFO, INCOMPATIBILIRIES
     print_color_orange('-> Iniciando verificação do Mosquitto             ')
-    is_serve = JSON_INFO['JARVIS_ENV']['IS_SERVER']
+    is_server = JSON_INFO['JARVIS_ENV']['IS_SERVER']
     try:
         status_mosquitto()
-        if is_serve:
+        if is_server:
             if JSON_INFO['MACHINE']['RUNNING_MOSQUITTO']:
                 config_mosquitto()
             else:
                 installing_mosquitto()
                 config_mosquitto()
-            status_mosquitto
-        elif not is_serve and JSON_INFO['MACHINE']['RUNNING_MOSQUITTO']:
+            status_mosquitto()
+        elif not is_server and JSON_INFO['MACHINE']['RUNNING_MOSQUITTO']:
             remover_mosquitto()
             status_mosquitto()
         print_color_green('-> Finalizando verificação do Mosquitto     ')
-    except:
-        print_color_red('-> Erro ao executar verificação do Mosquitto      ')
+    except Exception as e:
+        print_color_red('-> Erro ao executar verificação do Mosquitto:', e)
 
 def status_mosquitto():
-    global CONF_INFO
+    global CONF_INFO, JSON_INFO
     command = CONF_INFO['COMMAND']['MOSQUITTO_STATUS']
     try:
         print_color_blue('     -> Verificando status mosquitto')
-        result = subprocess.check_output(command, shell=True, universal_newlines=True)
+        result = subprocess.check_output(command, shell=True)
+        result = result.decode('utf-8')  # Convertendo bytes para string
         if 'running' in result:
             print_color_green('     -> Mosquitto encontrado                       ')
             JSON_INFO['MACHINE']['RUNNING_MOSQUITTO'] = True
         else:
             JSON_INFO['MACHINE']['RUNNING_MOSQUITTO'] = False
-            print_color_red('     -> Mosquitto nao encontrado')
+            print_color_red('     -> Mosquitto não encontrado')
     except subprocess.CalledProcessError:
-        print_color_red('     -> Mosquitto nao encontrado                  ')
+        print_color_red('     -> Mosquitto não encontrado                  ')
         
 def config_mosquitto():
     global JSON_INFO, INCOMPATIBILIRIES
@@ -572,47 +581,46 @@ def config_mosquitto():
         print_color_blue('     -> Alterando arquivo Mosquitto               ')
         with open(path_file, 'w') as arquivo:  
             arquivo.write(conteudo)
-        print_color_green('     -> Arquivo alterado Mosquitto                ')
-    except:
-        print_color_red('     -> Erro ao alterar arquivo Mosquitto         ')
+        print_color_green('     -> Arquivo Mosquitto alterado com sucesso    ')
+    except Exception as e:
+        print_color_red('     -> Erro ao alterar arquivo Mosquitto:', e)
 
 def remover_mosquitto():
     try:
-        print_color_blue('     -> Inicinado remoção do mosquitto                      ')
+        print_color_blue('     -> Iniciando remoção do mosquitto                      ')
         command = JSON_INFO['COMMAND']['REMOVE_MOSQUITTO']
-        subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquitto removido')
-        print_color_green('     -> Removendo mosquitto                      ')
-    except:
-        print_color_red('     -> Erro ao remover mosquito                  ')
+        print_color_green('     -> Mosquitto removido com sucesso                      ')
+    except Exception as e:
+        print_color_red('     -> Erro ao remover mosquito:', e)
              
 def installing_mosquitto():
     global CONF_INFO, INCOMPATIBILIRIES
-    install_mosquitto = CONF_INFO['COMMAND']['INSTALLING_MOSQUITTO']
+    install_rabbit = CONF_INFO['COMMAND']['INSTALLING_MOSQUITTO']
     try:
-        print_color_blue('     -> Iniciando instalação do Mosquitto')
-        process = subprocess.Popen(install_mosquitto, shell=True, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        process.communicate(input='Y\n')
+        print_color_blue('     -> Iniciando instalação mosquitto            ')
+        process = subprocess.Popen(install_rabbit, shell=True, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        process.communicate(input='Y\n'.encode())
         process.wait()
-        print_color_blue('     -> Instalação do Mosquitto concluída')
+        print_color_blue('     -> Finalizada a instalação mosquitto           ')
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquitto instalado')
-    except subprocess.CalledProcessError:
-        print_color_red('     -> Erro ao instalar o Mosquitto')
+    except Exception as e:
+        print_color_red('     -> Erro ao instalar mosquitto:', e)
    
 def check_speedtest_cli_installed():
     print_color_orange('-> Verificando se speedtest-cli está instalado...')
     try:
-        subprocess.run(["pip3", "show", "speedtest-cli"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.call(["speedtest-cli", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print_color_green('     -> speedtest-cli já está instalado.')
-    except subprocess.CalledProcessError:
+    except FileNotFoundError:
         print_color_orange('    -> speedtest-cli não está instalado.')
         install_speedtest_cli()
 
 def install_speedtest_cli():
     try:
         print_color_orange('-> Instalando speedtest-cli...')
-        subprocess.run(["sudo", "apt", "install", "-y", "python3-pip"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["sudo", "pip3", "install", "speedtest-cli"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.call(["sudo", "apt", "install", "speedtest-cli"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print_color_green('    -> speedtest-cli instalado com sucesso!')
     except subprocess.CalledProcessError as e:
         print_color_red('Erro ao instalar speedtest-cli', e)
@@ -626,36 +634,31 @@ def test_internet_speed():
         st.get_best_server()
         download_speed = st.download() / 1e+6  
         upload_speed = st.upload() / 1e+6 
-        JSON_INFO['MACHINE']['DOWNLOAD'] = f'{download_speed:.2f}' + 'Mbps'
-        JSON_INFO['MACHINE']['UPLOAD'] = f'{upload_speed:.2f}' + 'Mbps'
+        JSON_INFO['MACHINE']['DOWNLOAD'] = '{:.2f}'.format(download_speed) + 'Mbps'
+        JSON_INFO['MACHINE']['UPLOAD'] = '{:.2f}'.format(upload_speed) + 'Mbps'
     except speedtest.NoMatchedServers:
         print_color_red("Erro: Não foi possível encontrar servidores para testar a velocidade da internet. Conexão pode ter caído.")
     except speedtest.ConfigRetrievalError:
         print_color_red("Erro ao recuperar configuração do servidor. Verifique sua conexão com a internet.")
     except Exception as e:
         print_color_red("Erro ao testar velocidade da internet:", e)
+
         
+import subprocess
+
 def print_jarvis_machines():
     global CONF_INFO
     command = CONF_INFO['COMMAND']['JARVIS_MACHINES']
     try:
         print_color_blue("\n------------------JARVIS MACHINES-----------------\n")
-        result = subprocess.check_output(command, shell=True, universal_newlines=True)
-        print(result)
-        print_color_green('Jarvis Machines finalizado')
-    except:
-        print_color_red('Erro ao executar jarvis machines')
+        result = subprocess.check_output(command, shell=True)
+        print(result.decode('utf-8'))
+        print_color_green('-> Jarvis Machines finalizado')
+    except subprocess.CalledProcessError as e:
+        print_color_red('Erro ao executar jarvis machines:', e)
+    except Exception as e:
+        print_color_red('Erro ao executar jarvis machines:', e)
 
-# def hd_usage_45():
-#     global JSON_INFO, CONF_INFO
-#     command = CONF_INFO['COMMAND']['HD_USAGE']
-#     try:
-#         print_color_orange('-> Verificando uso de Hd')
-#         result = subprocess.run(command, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        
-#         print_color_green('-> Finalização verifição do uso de hd')
-#     except:
-#         print_color_red('-> Erro ao tentar verificar uso de hd')
              
 # INICIALIZAR MACHINES
 def process_machines():
@@ -681,7 +684,11 @@ class ColorPrint(Enum):
     RED = '\033[91m'
     WHITE = '\033[0m'
     BLUE = '\033[34m'
-    ORANGE = '\033[33m' 
+    ORANGE = '\033[33m'
+
+    def __str__(self):
+        return self.value
+
 
 def print_dict_with_format(data, title):
     if data:
@@ -689,38 +696,53 @@ def print_dict_with_format(data, title):
         print_color_orange('-' * 50)
         for key, value in data.items():
             if value:
-                print_color_green(f'{key}:{value}')
+                print_color_green('{}:{}'.format(key, value))
             else:
-                 print_color_red(f'{key}:{value}')
+                print_color_red('{}:{}'.format(key, value))
     else:
-        print_color_orange(f'No data found for {title.upper()}.')
+        print_color_orange('No data found for {}.'.format(title.upper()))
+
+
+def print_unconformities_json(title, inconformities):
+    global INCOMPATIBILIRIES
+    if inconformities:
+        print_color_red('\n' + '-'*50)
+        print_color_yellow(title.upper())
+        print_color_red('-' * 50)
+        for  value in inconformities:
+            print_color_red( value)
+    else:
+        print_color_red(f'No data found for {title.upper()}.')
+        
+    print_color_red('-'*50 + '\n')
+
 
 def print_result():    
     global JSON_INFO,CONF_INFO, INCOMPATIBILIRIES   
     print_dict_with_format(JSON_INFO.get('JARVIS_ENV'), 'JARVIS_ENV')
     print_dict_with_format(JSON_INFO.get('MACHINE'), 'MACHINE')  
-    print_color_blue('-'*50)
-    print_color_blue(INCOMPATIBILIRIES)
-    print_color_blue('-'*50)
+    print_unconformities_json("Resultados do Processo", INCOMPATIBILIRIES['UNCONFORMITIES'])
+
 
 def print_color_yellow(text):
-    print(f'{ColorPrint.YELLOW.value}{text}{ColorPrint.WHITE.value}')    
+    print('{}{}{}'.format(ColorPrint.YELLOW.value, text, ColorPrint.WHITE.value))
 
 def print_color_green(text):
-    print(f'{ColorPrint.GREEN.value}{text}{ColorPrint.WHITE.value}') 
+    print('{}{}{}'.format(ColorPrint.GREEN.value, text, ColorPrint.WHITE.value))
 
 def print_color_orange(text):
-    print(f'{ColorPrint.ORANGE.value}{text}{ColorPrint.WHITE.value}')    
+    print('{}{}{}'.format(ColorPrint.ORANGE.value, text, ColorPrint.WHITE.value))
 
 def print_color_red(text):
-    print(f'{ColorPrint.RED.value}{text}{ColorPrint.WHITE.value}')   
+    print('{}{}{}'.format(ColorPrint.RED.value, text, ColorPrint.WHITE.value))
 
 def print_color_blue(text):
-    print(f'{ColorPrint.BLUE.value}{text}{ColorPrint.WHITE.value}')
+    print('{}{}{}'.format(ColorPrint.BLUE.value, text, ColorPrint.WHITE.value))
+
     
 def head(text):
     print_color_yellow("-" * 50)
-    print_color_yellow(f'{text}')
+    print_color_yellow('{}'.format(text))
     print_color_yellow("-" * 50)
 
 # MAIN 
