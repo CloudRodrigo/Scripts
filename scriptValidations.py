@@ -74,7 +74,9 @@ def inicialize_config():
             },
             'OTHERS':{
                 'VERSION_CASHIER':'23.10.2',
-                'LINK_UPPDATE_VERSION_CHASHIER':'https://s3.sa-east-1.amazonaws.com/ferramentas.cloudpark.com.br/caixa/cloudpark-desktop_23.10.2_amd64.deb"',
+                'LINK_UPPDATE_VERSION_CHASHIER':'https://s3.sa-east-1.amazonaws.com/ferramentas.cloudpark.com.br/caixa/cloudpark-desktop_23.10.2_amd64.deb"'
+
+
             }
         }
         JSON_INFO = config_path  
@@ -586,31 +588,31 @@ def remover_mosquitto():
              
 def installing_mosquitto():
     global CONF_INFO, INCOMPATIBILIRIES
-    install_rabbit = CONF_INFO['COMMAND']['INSTALLING_MOSQUITTO']
+    install_mosquitto = CONF_INFO['COMMAND']['INSTALLING_MOSQUITTO']
     try:
-        print_color_blue('     -> Inicinado instalação mosquitto            ')
-        process = subprocess.Popen(install_rabbit, shell=True, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print_color_blue('     -> Iniciando instalação do Mosquitto')
+        process = subprocess.Popen(install_mosquitto, shell=True, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         process.communicate(input='Y\n')
         process.wait()
-        print_color_blue('     -> Finalizado a instalação mosquitto           ')
+        print_color_blue('     -> Instalação do Mosquitto concluída')
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquitto instalado')
-    except:
-        print_color_red('     -> Erro ao instalar mosquitto                  ')
+    except subprocess.CalledProcessError:
+        print_color_red('     -> Erro ao instalar o Mosquitto')
    
 def check_speedtest_cli_installed():
     print_color_orange('-> Verificando se speedtest-cli está instalado...')
     try:
-        subprocess.run(["pip", "show", "speedtest-cli"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(["speedtest-cli", "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print_color_green('     -> speedtest-cli já está instalado.')
-    except subprocess.CalledProcessError:
+    except FileNotFoundError:
         print_color_orange('    -> speedtest-cli não está instalado.')
         install_speedtest_cli()
 
 def install_speedtest_cli():
     try:
         print_color_orange('-> Instalando speedtest-cli...')
-        subprocess.run(["sudo", "apt", "install", "-y", "python3-pip"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["sudo", "pip3", "install", "speedtest-cli"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        subprocess.run(["sudo", "apt", "install", "speedtest-cli"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print_color_green('    -> speedtest-cli instalado com sucesso!')
     except subprocess.CalledProcessError as e:
         print_color_red('Erro ao instalar speedtest-cli', e)
@@ -640,7 +642,7 @@ def print_jarvis_machines():
         print_color_blue("\n------------------JARVIS MACHINES-----------------\n")
         result = subprocess.check_output(command, shell=True, universal_newlines=True)
         print(result)
-        print_color_green('Jarvis Machines finalizado')
+        print_color_green('-> Jarvis Machines finalizado')
     except:
         print_color_red('Erro ao executar jarvis machines')
 
@@ -692,14 +694,27 @@ def print_dict_with_format(data, title):
                  print_color_red(f'{key}:{value}')
     else:
         print_color_orange(f'No data found for {title.upper()}.')
+        
+def print_unconformities_json(title, inconformities):
+    global INCOMPATIBILIRIES
+    if inconformities:
+        print_color_red('\n' + '-'*50)
+        print_color_yellow(title.upper())
+        print_color_red('-' * 50)
+        for  value in inconformities:
+            print_color_red( value)
+    else:
+        print_color_red(f'No data found for {title.upper()}.')
+        
+    print_color_red('-'*50 + '\n')
+
 
 def print_result():    
     global JSON_INFO,CONF_INFO, INCOMPATIBILIRIES   
     print_dict_with_format(JSON_INFO.get('JARVIS_ENV'), 'JARVIS_ENV')
     print_dict_with_format(JSON_INFO.get('MACHINE'), 'MACHINE')  
-    print_color_blue('-'*50)
-    print_color_blue(INCOMPATIBILIRIES)
-    print_color_blue('-'*50)
+    print_unconformities_json("Resultados do Processo", INCOMPATIBILIRIES['UNCONFORMITIES'])
+    
 
 def print_color_yellow(text):
     print(f'{ColorPrint.YELLOW.value}{text}{ColorPrint.WHITE.value}')    
