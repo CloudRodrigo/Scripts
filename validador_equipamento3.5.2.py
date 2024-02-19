@@ -197,10 +197,9 @@ def load_config_jarvis_env():
             JSON_INFO['JARVIS_ENV']['HARDWARE_DIR'] = 'HAS_ALPR=/opt/cloudpark' in conteudo
             JSON_INFO['JARVIS_ENV']['PAYMENT_TOTEM_DIR'] = 'PAYMENT_TOTEM_DIR=/opt/cloudpark/payment_totem/' in conteudo
             JSON_INFO['JARVIS_ENV']['USE_SHARE'] = 'share' in conteudo
-                        
         print_color_green('-> Finalizando carregamento de json informações...')        
     except Exception as e:
-        print_color_red('-> Erro ao carregar json de informações:', e)
+        print_color_red('-> Erro ao carregar json de informações:', str(e))
 
 def has_swap():
     global JSON_INFO
@@ -466,7 +465,8 @@ def status_rabbit():
             JSON_INFO['MACHINE']['RUNNING_RABBIT'] = False
             print_color_red('     -> Rabbit não encontrado                 ')
     except subprocess.CalledProcessError as e:
-        print_color_red('     -> Erro ao verificar o status do RabbitMQ.  ')
+        JSON_INFO['MACHINE']['RUNNING_RABBIT'] = False
+        print_color_red('     -> Rabbit não encontrado                 ')
         
 def remover_rabbit():
     print_color_blue('     -> Removendo Rabbit                   ')
@@ -571,6 +571,7 @@ def status_mosquitto():
             JSON_INFO['MACHINE']['RUNNING_MOSQUITTO'] = False
             print_color_red('     -> Mosquitto não encontrado')
     except subprocess.CalledProcessError:
+        JSON_INFO['MACHINE']['RUNNING_MOSQUITTO'] = False
         print_color_red('     -> Mosquitto não encontrado                  ')
         
 def config_mosquitto():
@@ -712,9 +713,8 @@ def print_unconformities_json(title, inconformities):
         for  value in inconformities:
             print_color_red( value)
     else:
-        print_color_red(f'No data found for {title.upper()}.')
-        
-    print_color_red('-'*50 + '\n')
+        print_color_green('Nem um processo foi alterado')
+        print_color_red('-'*50 + '\n')
 
 
 def print_result():    
@@ -766,4 +766,3 @@ def main():
 if __name__ == "__main__":
     
     main()
-    
