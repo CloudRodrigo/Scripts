@@ -704,7 +704,9 @@ def print_unconformities_json(title, inconformities):
         for  value in inconformities:
             print_color_red( value)
     else:
-        print_color_red(f'No data found for {title.upper()}.')
+        print_color_yellow('\n' + '-'*50)
+        print_color_green('Nem um processo foi alterado')
+        print_color_yellow('-'*50 + '\n')
         
     print_color_red('-'*50 + '\n')
 
