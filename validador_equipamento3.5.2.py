@@ -679,7 +679,7 @@ def process_machines():
     try:
         test_internet_speed()
     except Exception as e:
-        print_color_red('Erro ao testar a velocidade da internet:', e)
+        print_color_red('Erro ao testar a velocidade da internet: %s' % e)
 
 
 # CONFIG FOR PRINT
