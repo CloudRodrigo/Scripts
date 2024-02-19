@@ -102,7 +102,7 @@ def inicialize_config():
                     'RESTART_RABBIT':'sudo service rabbitmq-server restart',
                     'RABBIT_STATUS':'sudo service rabbitmq-server status',
                     'MOSQUITTO_STATUS':'sudo service mosquitto status',
-                    'REMOVE_MOSQUITTO':'sudo apt-get remove mosquitto -y',
+                    'REMOVE_MOSQUITTO':'sudo apt-get -y remove mosquitto',
                     'INSTALLING_RABBIT':'sudo apt-get install rabbitmq-server',
                     'INSTALLING_MOSQUITTO':'sudo apt-get install mosquitto -y',
                 }
@@ -588,7 +588,7 @@ def config_mosquitto():
 def remover_mosquitto():
     try:
         print_color_blue('     -> Iniciando remoção do mosquitto                      ')
-        command = JSON_INFO['COMMAND']['REMOVE_MOSQUITTO']
+        command = CONF_INFO['COMMAND']['REMOVE_MOSQUITTO']
         subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquitto removido')
         print_color_green('     -> Mosquitto removido com sucesso                      ')
