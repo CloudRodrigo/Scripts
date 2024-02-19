@@ -676,7 +676,11 @@ def process_machines():
     have_check_rabbit()
     have_mosquitto_check()
     check_speedtest_cli_installed()
-    test_internet_speed()
+    try:
+        test_internet_speed()
+    except Exception as e:
+        print_color_red('Erro ao testar a velocidade da internet:', e)
+
 
 # CONFIG FOR PRINT
 class ColorPrint(Enum):
@@ -768,4 +772,3 @@ def main():
 if __name__ == "__main__":
     
     main()
-    
