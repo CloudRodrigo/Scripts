@@ -284,16 +284,9 @@ def have_if_has_share():
         if not JSON_INFO['MACHINE']['NO_EXIST_SHARE']:
             print_color_red('-> Pasta share foi encontrada')
             if not JSON_INFO['JARVIS_ENV']['USE_SHARE']:
-                try:
-                    confirm = input('Você tem certeza que deseja excluir a pasta share? (Digite "sim" para confirmar): ')
-                    if confirm.lower() == 'sim':
-                        delete_share_folder()
-                        print_color_orange('-> Finalizando remoção da pasta share')
-                        JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = True
-                    else:
-                        print_color_blue('-> Exclusão da pasta share cancelada.')
-                except EOFError:
-                    print_color_red('-> Entrada interrompida. Exclusão da pasta share cancelada.')
+                delete_share_folder()
+                print_color_orange('-> Finalizando remoção da pasta share')
+                JSON_INFO['MACHINE']['NO_EXIST_SHARE'] = True
             else:
                 print_color_red('-> Pasta share está sendo usada')
         else:
@@ -776,4 +769,3 @@ def main():
 if __name__ == "__main__":
     
     main()
-    
