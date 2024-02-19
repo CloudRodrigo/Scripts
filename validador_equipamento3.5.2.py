@@ -666,7 +666,7 @@ def process_machines():
     try:
         have_test_internet_connection()
     except Exception as e:
-        print_color_red('Erro ao testar a internet: %s' % e)
+        print_color_red('-> Erro ao tentar verificar conexão com a internet: {}'.format(e))
     
     exec_jarvis_status()
     have_log_jarvis()
