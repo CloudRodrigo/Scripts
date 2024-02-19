@@ -712,9 +712,11 @@ def print_unconformities_json(title, inconformities):
         print_color_red('-' * 50)
         for  value in inconformities:
             print_color_red( value)
+            print_color_red('-' * 50)
     else:
+        print_color_yellow('\n' + '-'*50)
         print_color_green('Nem um processo foi alterado')
-        print_color_red('-'*50 + '\n')
+        print_color_yellow('-'*50 + '\n')
 
 
 def print_result():    
@@ -766,3 +768,4 @@ def main():
 if __name__ == "__main__":
     
     main()
+    
