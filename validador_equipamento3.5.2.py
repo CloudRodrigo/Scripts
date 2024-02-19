@@ -339,14 +339,14 @@ def have_test_internet_connection():
     try:
         command = CONF_INFO['COMMAND']['TESTE_PING']
         output = subprocess.check_output(command, shell=True)
-        output = output.decode('utf-8')  # Convertendo bytes para string
+        output = output.decode('utf-8')  
         JSON_INFO['MACHINE']['INTERNET'] = 'PING google.com' in output
         if not JSON_INFO['MACHINE']['INTERNET']:
             INCOMPATIBILIRIES['UNCONFORMITIES'].add('SEM CONEXAO A INTERNET')
             print_color_red('      -> Sem conexão com a internet               ')
         print_color_green('-> Finalizando verificação internet               ')
     except Exception as e:
-        print_color_red('-> Erro ao tentar verificar conexão com a internet:', e) 
+        print_color_red('-> Erro ao tentar verificar conexão com a internet: ' + str(e))
 
 def exec_jarvis_status():
     global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
@@ -662,7 +662,12 @@ def process_machines():
     have_hostname_machines() 
     have_if_has_share()
     exec_validation_swap()
-    have_test_internet_connection()
+    
+    try:
+        have_test_internet_connection()
+    except Exception as e:
+        print_color_red('Erro ao testar a internet: %s' % e)
+    
     exec_jarvis_status()
     have_log_jarvis()
     have_sqlite3_check()
@@ -769,3 +774,4 @@ def main():
 if __name__ == "__main__":
     
     main()
+    
