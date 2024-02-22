@@ -345,8 +345,11 @@ def have_test_internet_connection():
             INCOMPATIBILIRIES['UNCONFORMITIES'].add('SEM CONEXAO A INTERNET')
             print_color_red('      -> Sem conexão com a internet               ')
         print_color_green('-> Finalizando verificação internet               ')
+    except subprocess.CalledProcessError as e:
+        print_color_red('-> O comando ping falhou: ', str(e))
     except Exception as e:
         print_color_red('-> Erro ao tentar verificar conexão com a internet: ' + str(e))
+
 
 def exec_jarvis_status():
     global CONF_INFO, INCOMPATIBILIRIES, JSON_INFO
@@ -451,7 +454,7 @@ def status_rabbit():
         print_color_blue('     -> Verificando status rabbit                 ')
         result = subprocess.check_output(command, shell=True)
         result = result.decode('utf-8')  
-        if "running" in result:
+        if "running" or 'exited' in result:
             JSON_INFO['MACHINE']['RUNNING_RABBIT'] = True
             print_color_green('     -> Rabbit encontrado                 ')
         else:
@@ -524,7 +527,10 @@ def fixing_ip():
     local_ip = JSON_INFO['MACHINE']['LOCAL_IP']
     route = JSON_INFO['MACHINE']['ROUTE']
     dns = JSON_INFO['MACHINE']['DNS']
-    command = 'sudo jarvis ip --static {} --mask 24 --gateway {} --dns {}'.format(local_ip, route, dns)
+    if dns == '8.8.8.8':
+        command = 'sudo jarvis ip --static {} --mask 24 --gateway {} --dns {}'.format(local_ip, route, dns)
+    else:
+        command = 'sudo jarvis ip --static {} --mask 24 --gateway {} --dns 8.8.8.8,{}'.format(local_ip, route, dns)
     if not JSON_INFO['MACHINE']['IP_FIXO']:
         head('                    FIXANDO IP                    ')  
         subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -557,7 +563,7 @@ def status_mosquitto():
         print_color_blue('     -> Verificando status mosquitto')
         result = subprocess.check_output(command, shell=True)
         result = result.decode('utf-8')  # Convertendo bytes para string
-        if 'running' in result:
+        if 'running' or 'exited' in result:
             print_color_green('     -> Mosquitto encontrado                       ')
             JSON_INFO['MACHINE']['RUNNING_MOSQUITTO'] = True
         else:
@@ -595,7 +601,6 @@ def installing_mosquitto():
     try:
         print_color_blue('     -> Iniciando instalação mosquitto            ')
         process = subprocess.Popen(install_rabbit, shell=True, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        process.communicate(input='Y\n'.encode())
         process.wait()
         print_color_blue('     -> Finalizada a instalação mosquitto           ')
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Mosquitto instalado')
