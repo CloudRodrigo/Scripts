@@ -364,7 +364,7 @@ def exec_jarvis_status():
             print_color_red('     -> Jarvis não está funcionando')
             INCOMPATIBILIRIES['UNCONFORMITIES'].add('JARVIS DEAD')        
     except Exception as e:
-        print_color_red('-> Erro ao verificar funcionamento jarviz:', e)
+        print_color_red('-> Erro ao verificar funcionamento jarviz:{}'.format(e))
 
 def have_log_jarvis():
     global JSON_INFO, LOG_JARVIS
@@ -384,7 +384,7 @@ def have_log_jarvis():
             JSON_INFO['MACHINE']['LOG_JARVIS_OK'] = True
             print_color_green('-> Log verificado com sucesso                       ')
     except Exception as e:
-        print_color_red('-> Erro ao verificar log do jarvis:', e)
+        print_color_red('-> Erro ao verificar log do jarvis:{}'.format(e))
 
 def install_sqlite3():
     global CONF_INFO
@@ -423,7 +423,7 @@ def have_sqlite3_check():
         print_color_green('-> Finalizando verificação SQLITE3')
         JSON_INFO['MACHINE']['EXIST_SQLITE3'] = True
     except Exception as e:
-        print_color_red('-> Erro ao verificar instalação SQLITE3:', e)
+        print_color_red('-> Erro ao verificar instalação SQLITE3:{}'.format(e))
 
 def have_check_rabbit():
     global JSON_INFO, CONF_INFO, INCOMPATIBILIRIES
@@ -445,7 +445,7 @@ def have_check_rabbit():
             status_rabbit()
         print_color_green('-> Finalizando verificação do Rebbit              ')
     except Exception as e:
-        print_color_red('-> Erro ao executar verificação do Rebbbit:', e)
+        print_color_red('-> Erro ao executar verificação do Rebbbit:{}'.format(e))
 
 def status_rabbit():
     global CONF_INFO, JSON_INFO
@@ -479,7 +479,7 @@ def remover_rabbit():
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Rabbit removido')
         print_color_green('     -> Finalizando remoção do Rabbit                  ')
     except Exception as e:
-        print_color_red('     -> Erro ao remover o Rabbit:', e)
+        print_color_red('     -> Erro ao remover o Rabbit:{}'.format(e))
 
 def restart_rabbit():
     global CONF_INFO
@@ -489,7 +489,7 @@ def restart_rabbit():
         subprocess.run(restart_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print_color_green('     -> Rabbit reiniciado                        ')
     except Exception as e:
-        print_color_red('     -> Erro ao reiniciar Rabbit:', e)
+        print_color_red('     -> Erro ao reiniciar Rabbit:{}'.format(e))
 
 def installing_rabbit():
     global CONF_INFO, INCOMPATIBILIRIES
@@ -502,7 +502,7 @@ def installing_rabbit():
         print_color_blue('     -> Instalação do rabbit concluída           ')
         INCOMPATIBILIRIES['UNCONFORMITIES'].add('Rabbit instalado')
     except Exception as e:
-        print_color_red('     -> Erro ao instalar rabbit:', e)
+        print_color_red('     -> Erro ao instalar rabbit:{}'.format(e))
 
 def create_rabbitmq_config():
     global JSON_INFO
@@ -514,7 +514,8 @@ def create_rabbitmq_config():
             arquivo.write(conteudo) 
         print_color_green('     -> Arquivo alterado do Rabbit               ')
     except Exception as e:
-        print_color_red('     -> Erro ao alterar arquivo Rabbit:', e)
+        print_color_red('     -> Erro ao alterar arquivo Rabbit: {}'.format(e))
+
 
 def print_log_jarvis():
     print('LOG_JARVIS:')
@@ -779,4 +780,3 @@ def main():
 if __name__ == "__main__":
     
     main()
-    
