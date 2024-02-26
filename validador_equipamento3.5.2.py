@@ -53,7 +53,7 @@ def inicialize_config():
             },
             'MACHINE': {
                 'HOSTNAME': '',
-                'LOCAL_IP': '',
+                'EQUIPAMENT_IP': '',
                 'DNS': '',
                 'ROUTE': '',
                 'DATE': '',
@@ -224,7 +224,7 @@ def have_ip_info():
         ip_match = re.search(r'IP:\s*([\d.]+)', output)
         dns_match = re.search(r'DNS:\s*([\d.]+)', output)
         if ip_match:
-            JSON_INFO['MACHINE']['LOCAL_IP'] = ip_match.group(1)
+            JSON_INFO['MACHINE']['EQUIPAMENT_IP'] = ip_match.group(1)
         if dns_match: 
             JSON_INFO['MACHINE']['DNS'] = dns_match.group(1)
             have_router_default()
@@ -525,7 +525,7 @@ def print_log_jarvis():
 
 def fixing_ip():
     global JSON_INFO
-    local_ip = JSON_INFO['MACHINE']['LOCAL_IP']
+    local_ip = JSON_INFO['MACHINE']['EQUIPAMENT_IP']
     route = JSON_INFO['MACHINE']['ROUTE']
     dns = JSON_INFO['MACHINE']['DNS']
     if dns == '8.8.8.8':
@@ -780,3 +780,4 @@ def main():
 if __name__ == "__main__":
     
     main()
+    
