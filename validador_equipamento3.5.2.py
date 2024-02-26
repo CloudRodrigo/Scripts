@@ -201,7 +201,6 @@ def load_config_jarvis_env():
     except Exception as e:
         print_color_red('-> Erro ao carregar json de informações: {}'.format(e))
 
-
 def has_swap():
     global JSON_INFO
     path_file = JSON_INFO['PATHS']['CONFIG_HARDWARE']
