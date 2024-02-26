@@ -199,7 +199,7 @@ def load_config_jarvis_env():
             JSON_INFO['JARVIS_ENV']['USE_SHARE'] = 'share' in conteudo
         print_color_green('-> Finalizando carregamento de json informações...')        
     except Exception as e:
-        print_color_red('-> Erro ao carregar json de informações:', e)
+        print_color_red('-> Erro ao carregar json de informações:', str(e))
 
 def has_swap():
     global JSON_INFO
