@@ -772,7 +772,12 @@ def main():
     print_result()
     if not JSON_INFO['MACHINE']['LOG_JARVIS_OK']:
         head('                    LOG JARVIS                    ')
-        print_log_jarvis()
+        try:
+            print_log_jarvis()
+        except Exception as e:
+            head('   ERRO NO JARVIS MACHINES   ')
+            print_color_red(str(e))
+    
     print_jarvis_machines()
     if not JSON_INFO['MACHINE']['IP_FIXO']:
         fixing_ip()
