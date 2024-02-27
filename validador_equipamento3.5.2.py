@@ -627,22 +627,30 @@ def install_speedtest_cli():
 
 def test_internet_speed():
     import speedtest
+    import threading
     global JSON_INFO
     print_color_orange("-> Testando velocidade da internet...")
     try:
-        st = speedtest.Speedtest()
-        st.get_best_server()
-        download_speed = st.download() / 1e+6  
-        upload_speed = st.upload() / 1e+6 
-        JSON_INFO['MACHINE']['DOWNLOAD'] = '{:.2f}'.format(download_speed) + 'Mbps'
-        JSON_INFO['MACHINE']['UPLOAD'] = '{:.2f}'.format(upload_speed) + 'Mbps'
+        def test_speed_with_timeout():
+            st = speedtest.Speedtest()
+            st.get_best_server()
+            download_speed = st.download() / 1e+6  
+            upload_speed = st.upload() / 1e+6 
+            JSON_INFO['MACHINE']['DOWNLOAD'] = '{:.2f}'.format(download_speed) + 'Mbps'
+            JSON_INFO['MACHINE']['UPLOAD'] = '{:.2f}'.format(upload_speed) + 'Mbps'
+        t = threading.Thread(target=test_speed_with_timeout)
+        t.start()
+        t.join(timeout=60)
+        if t.is_alive():
+            raise TimeoutError("O teste de velocidade da internet excedeu 1 minuto. Pulando este teste.")
+    except TimeoutError as e:
+        print_color_red("Timeout:", e)
     except speedtest.NoMatchedServers:
         print_color_red("Erro: Não foi possível encontrar servidores para testar a velocidade da internet. Conexão pode ter caído.")
     except speedtest.ConfigRetrievalError:
         print_color_red("Erro ao recuperar configuração do servidor. Verifique sua conexão com a internet.")
     except Exception as e:
         print_color_red("Erro ao testar velocidade da internet:", e)
-
         
 import subprocess
 
@@ -704,7 +712,8 @@ def print_dict_with_format(data, title):
     if data:
         print_color_orange('\n' + title.upper())
         print_color_orange('-' * 50)
-        for key, value in data.items():
+        for key in sorted(data.keys()): 
+            value = data[key]
             if value:
                 print_color_green('{}:{}'.format(key, value))
             else:
