@@ -625,19 +625,21 @@ def install_speedtest_cli():
     except subprocess.CalledProcessError as e:
         print_color_red('Erro ao instalar speedtest-cli', e)
 
+def test_speed_with_timeout():
+    import speedtest
+    st = speedtest.Speedtest()
+    st.get_best_server()
+    download_speed = st.download() / 1e+6  
+    upload_speed = st.upload() / 1e+6 
+    JSON_INFO['MACHINE']['DOWNLOAD'] = '{:.2f}'.format(download_speed) + 'Mbps'
+    JSON_INFO['MACHINE']['UPLOAD'] = '{:.2f}'.format(upload_speed) + 'Mbps'
+
 def test_internet_speed():
     import speedtest
     import threading
     global JSON_INFO
     print_color_orange("-> Testando velocidade da internet...")
     try:
-        def test_speed_with_timeout():
-            st = speedtest.Speedtest()
-            st.get_best_server()
-            download_speed = st.download() / 1e+6  
-            upload_speed = st.upload() / 1e+6 
-            JSON_INFO['MACHINE']['DOWNLOAD'] = '{:.2f}'.format(download_speed) + 'Mbps'
-            JSON_INFO['MACHINE']['UPLOAD'] = '{:.2f}'.format(upload_speed) + 'Mbps'
         t = threading.Thread(target=test_speed_with_timeout)
         t.start()
         t.join(timeout=60)
